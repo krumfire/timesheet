@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KFD Timesheet</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="sheet">
+
+  <header class="masthead">
+    <div class="masthead-left">
+      <img src="assets/kfd-patch-logo.png" alt="Krum Fire Department patch" class="dept-logo" />
+      <h1>14 Day Schedule<br><span class="sub">Time Record (non-exempt)</span></h1>
+    </div>
+    <div class="masthead-right">
+      <label class="schedule-label" for="scheduleCode">Schedule</label>
+      <input type="text" id="scheduleCode" value="FIRE 106 HOURS" />
+      <a href="timeoff.html" class="ghost-btn timeoff-link">Request Time Off &rarr;</a>
+    </div>
+  </header>
+
+  <section class="ident-row">
+    <div class="field">
+      <label for="employeeName">Employee</label>
+      <input type="text" id="employeeName" placeholder="Full name" required />
+    </div>
+    <div class="field">
+      <label for="payPeriodStart">Pay period start</label>
+      <input type="date" id="payPeriodStart" required />
+    </div>
+    <div class="field readout">
+      <label>Pay period</label>
+      <div id="payPeriodDisplay" class="readout-value">— select a start date —</div>
+    </div>
+    <div class="field start-fresh-field">
+      <label>&nbsp;</label>
+      <button type="button" id="startFreshBtn" class="ghost-btn">Start fresh (clear saved entries)</button>
+    </div>
+  </section>
+
+  <section class="week" id="week1">
+    <div class="week-tab">WEEK 01</div>
+    <div class="table-scroll">
+      <table class="timesheet-table" id="table-week-1">
+        <thead>
+          <tr>
+            <th class="col-day">Day / Date</th>
+            <th class="col-time">In</th>
+            <th class="col-time">Out</th>
+            <th>Regular<br>Hours</th>
+            <th>DPLR</th>
+            <th>FLSA</th>
+            <th>DPFLSA</th>
+            <th>Overtime<br>Hours</th>
+            <th>DPLO</th>
+            <th>Sick</th>
+            <th>Vacation</th>
+            <th>Holiday</th>
+            <th>Other</th>
+            <th class="col-total">Total</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr class="totals-row">
+            <td colspan="3">WEEK 1 TOTAL</td>
+            <td data-total="regular"></td>
+            <td data-total="dplr"></td>
+            <td data-total="flsa"></td>
+            <td data-total="dpflsa"></td>
+            <td data-total="ot"></td>
+            <td data-total="dplo"></td>
+            <td data-total="sick"></td>
+            <td data-total="vacation"></td>
+            <td data-total="holiday"></td>
+            <td data-total="other"></td>
+            <td data-total="total" class="col-total"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section class="week" id="week2">
+    <div class="week-tab">WEEK 02</div>
+    <div class="table-scroll">
+      <table class="timesheet-table" id="table-week-2">
+        <thead>
+          <tr>
+            <th class="col-day">Day / Date</th>
+            <th class="col-time">In</th>
+            <th class="col-time">Out</th>
+            <th>Regular<br>Hours</th>
+            <th>DPLR</th>
+            <th>FLSA</th>
+            <th>DPFLSA</th>
+            <th>Overtime<br>Hours</th>
+            <th>DPLO</th>
+            <th>Sick</th>
+            <th>Vacation</th>
+            <th>Holiday</th>
+            <th>Other</th>
+            <th class="col-total">Total</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr class="totals-row">
+            <td colspan="3">WEEK 2 TOTAL</td>
+            <td data-total="regular"></td>
+            <td data-total="dplr"></td>
+            <td data-total="flsa"></td>
+            <td data-total="dpflsa"></td>
+            <td data-total="ot"></td>
+            <td data-total="dplo"></td>
+            <td data-total="sick"></td>
+            <td data-total="vacation"></td>
+            <td data-total="holiday"></td>
+            <td data-total="other"></td>
+            <td data-total="total" class="col-total"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section class="grand-totals">
+    <div class="table-scroll">
+      <table class="timesheet-table totals-only">
+        <tbody>
+          <tr class="grand-row">
+            <td colspan="3">PAY PERIOD TOTALS</td>
+            <td data-grand="regular"></td>
+            <td data-grand="dplr"></td>
+            <td data-grand="flsa"></td>
+            <td data-grand="dpflsa"></td>
+            <td data-grand="ot"></td>
+            <td data-grand="dplo"></td>
+            <td data-grand="sick"></td>
+            <td data-grand="vacation"></td>
+            <td data-grand="holiday"></td>
+            <td data-grand="other"></td>
+            <td data-grand="total" class="col-total"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="notes-block">
+    <label for="notes">Notes</label>
+    <textarea id="notes" rows="3" placeholder="Explain any Sick / Vacation / Holiday / Other entries, corrections, etc."></textarea>
+  </section>
+
+  <section class="sign-block">
+    <div class="sign-col">
+      <h2>Employee signature</h2>
+      <p class="sign-help">Sign in the box below using your mouse, stylus, or finger.</p>
+      <div class="pad-wrap">
+        <canvas id="sigPad" width="600" height="180"></canvas>
+        <button type="button" id="clearSig" class="ghost-btn">Clear</button>
+      </div>
+      <div class="attest-row">
+        <label class="checkbox-row">
+          <input type="checkbox" id="attestCheck" />
+          <span>I certify the hours and information above are accurate to the best of my knowledge.</span>
+        </label>
+      </div>
+      <div class="field-inline">
+        <label for="sigDate">Date</label>
+        <input type="date" id="sigDate" />
+      </div>
+    </div>
+    <div class="sign-col director-col">
+      <h2>Director signature</h2>
+      <p class="sign-help">The director signs the printed PDF by hand after this is submitted.</p>
+    </div>
+  </section>
+
+  <section class="submit-block">
+    <div class="field">
+      <label for="recipientEmail">Send completed timesheet to</label>
+      <input type="email" id="recipientEmail" placeholder="supervisor@example.com" value="rcornelius@krumfire.com" required />
+    </div>
+    <button type="button" id="submitBtn" class="primary-btn">Sign &amp; submit timesheet</button>
+    <div id="statusMsg" class="status-msg" role="status" aria-live="polite"></div>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/access-gate.js"></script>
+<script src="js/signature-pad.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

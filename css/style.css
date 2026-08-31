@@ -1,0 +1,432 @@
+:root{
+  --ink:#1c2b2b;
+  --ink-soft:#4d5e5e;
+  --paper:#eef1ef;
+  --panel:#ffffff;
+  --line:#d7dcd9;
+  --line-strong:#b7c0bc;
+  --brick:#a5372c;
+  --brick-dark:#7e2a21;
+  --gold:#b8912a;
+  --ok:#2f6b4f;
+  --radius:2px;
+  --font-display:'Zilla Slab', Georgia, serif;
+  --font-body:'Inter', system-ui, sans-serif;
+  --font-mono:'IBM Plex Mono', ui-monospace, monospace;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  background:
+    linear-gradient(var(--paper),var(--paper)),
+    repeating-linear-gradient(0deg, rgba(28,43,43,0.035) 0px, rgba(28,43,43,0.035) 1px, transparent 1px, transparent 28px);
+  background-blend-mode:normal;
+  color:var(--ink);
+  font-family:var(--font-body);
+  padding:32px 16px 80px;
+}
+
+.sheet{
+  max-width:1040px;
+  margin:0 auto;
+  background:var(--panel);
+  border:1px solid var(--line);
+  box-shadow:0 1px 0 var(--line), 0 18px 40px -28px rgba(28,43,43,0.5);
+}
+
+/* ---------- Masthead ---------- */
+.masthead{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:24px;
+  padding:28px 32px 20px;
+  border-bottom:3px solid var(--ink);
+  position:relative;
+}
+.masthead-left{display:flex; align-items:flex-start; gap:16px;}
+.dept-logo{
+  width:56px;
+  height:auto;
+  margin-top:2px;
+  flex-shrink:0;
+}
+h1{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:28px;
+  line-height:1.15;
+  margin:0;
+  color:var(--ink);
+}
+h1 .sub{
+  display:block;
+  font-size:15px;
+  font-weight:500;
+  color:var(--ink-soft);
+  font-family:var(--font-body);
+  letter-spacing:.01em;
+  margin-top:4px;
+}
+.masthead-right{
+  text-align:right;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.schedule-label{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:var(--ink-soft);
+}
+#scheduleCode{
+  font-family:var(--font-mono);
+  font-weight:600;
+  font-size:14px;
+  text-align:right;
+  border:1px solid var(--line);
+  background:var(--paper);
+  padding:6px 10px;
+  color:var(--brick-dark);
+  width:190px;
+}
+.timeoff-link{
+  margin-top:8px;
+  text-decoration:none;
+  display:inline-block;
+}
+
+/* ---------- Identity row ---------- */
+.ident-row{
+  display:grid;
+  grid-template-columns:1.6fr 1fr 1.2fr auto;
+  gap:20px;
+  align-items:end;
+  padding:22px 32px;
+  border-bottom:1px solid var(--line);
+  background:var(--paper);
+}
+.start-fresh-field .ghost-btn{
+  white-space:nowrap;
+  padding:9px 14px;
+}
+.field label, .sign-help, .attest-row, .field-inline label{
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  color:var(--ink-soft);
+  display:block;
+  margin-bottom:6px;
+}
+.field input, .field-inline input, textarea, #scheduleCode{
+  font-family:var(--font-body);
+  font-size:15px;
+  padding:9px 11px;
+  border:1px solid var(--line-strong);
+  border-radius:var(--radius);
+  width:100%;
+  background:#fff;
+  color:var(--ink);
+}
+.field input:focus, textarea:focus, #scheduleCode:focus, input[type=email]:focus{
+  outline:2px solid var(--brick);
+  outline-offset:1px;
+}
+.readout-value{
+  font-family:var(--font-mono);
+  font-weight:600;
+  padding:9px 11px;
+  border:1px dashed var(--line-strong);
+  background:#fff;
+  color:var(--brick-dark);
+}
+
+/* ---------- Week tables ---------- */
+.week{padding:26px 32px 6px; position:relative;}
+.week-tab{
+  display:inline-block;
+  font-family:var(--font-mono);
+  font-size:12px;
+  letter-spacing:.14em;
+  font-weight:600;
+  color:#fff;
+  background:var(--ink);
+  padding:4px 10px;
+  margin-bottom:10px;
+}
+.table-scroll{overflow-x:auto; border:1px solid var(--line);}
+table.timesheet-table{
+  border-collapse:collapse;
+  width:100%;
+  min-width:920px;
+  font-family:var(--font-mono);
+  font-size:13px;
+}
+table.timesheet-table th{
+  background:var(--ink);
+  color:#fff;
+  font-family:var(--font-body);
+  font-weight:600;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  padding:8px 6px;
+  text-align:center;
+  border-right:1px solid rgba(255,255,255,0.14);
+}
+table.timesheet-table th.col-day{
+  position:sticky;
+  left:0;
+  z-index:3;
+}
+table.timesheet-table td{
+  border:1px solid var(--line);
+  padding:0;
+  text-align:center;
+  vertical-align:middle;
+}
+table.timesheet-table td.col-day-cell{
+  font-family:var(--font-body);
+  font-size:12.5px;
+  font-weight:600;
+  padding:8px 8px;
+  text-align:left;
+  background:var(--paper);
+  white-space:nowrap;
+  position:sticky;
+  left:0;
+  z-index:2;
+  box-shadow:2px 0 4px -2px rgba(0,0,0,0.15);
+}
+table.timesheet-table input{
+  width:100%;
+  border:none;
+  background:transparent;
+  text-align:center;
+  font-family:var(--font-mono);
+  font-size:13px;
+  padding:8px 4px;
+}
+table.timesheet-table input:focus{
+  outline:2px solid var(--brick);
+  outline-offset:-2px;
+  background:#fff8f6;
+}
+table.timesheet-table input[type=time]{font-size:12px;}
+td.col-total, th.col-total{background:#f4efe6;}
+td.total-cell{
+  font-weight:700;
+  color:var(--brick-dark);
+  padding:8px 4px;
+  background:#f4efe6;
+}
+tr.totals-row td{
+  background:var(--ink);
+  color:#fff;
+  font-weight:700;
+  padding:9px 4px;
+  border-color:#33403f;
+}
+tr.totals-row td:first-child{
+  text-align:left;
+  padding-left:10px;
+  font-family:var(--font-body);
+  font-size:11px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  position:sticky;
+  left:0;
+  z-index:2;
+  box-shadow:2px 0 4px -2px rgba(0,0,0,0.15);
+}
+
+.grand-totals{padding:16px 32px 30px;}
+tr.grand-row td{
+  background:var(--brick);
+  color:#fff;
+  font-weight:700;
+  padding:11px 4px;
+  border-color:var(--brick-dark);
+  font-size:13px;
+}
+tr.grand-row td:first-child{
+  text-align:left;
+  padding-left:10px;
+  font-family:var(--font-body);
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  position:sticky;
+  left:0;
+  z-index:2;
+  box-shadow:2px 0 4px -2px rgba(0,0,0,0.15);
+}
+
+/* ---------- Notes ---------- */
+.notes-block{padding:0 32px 26px;}
+.notes-block label{
+  font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-soft); display:block; margin-bottom:6px;
+}
+.notes-block textarea{resize:vertical; font-family:var(--font-body);}
+
+/* ---------- Signatures ---------- */
+.sign-block{
+  display:grid;
+  grid-template-columns:1.3fr 1fr;
+  gap:28px;
+  padding:26px 32px;
+  border-top:3px solid var(--ink);
+  background:var(--paper);
+}
+.sign-col h2{
+  font-family:var(--font-display);
+  font-size:16px;
+  margin:0 0 6px;
+}
+.sign-help{margin:0 0 12px; text-transform:none; letter-spacing:0; font-size:12.5px;}
+.pad-wrap{position:relative; display:inline-block;}
+#sigPad, #toSigPad{
+  background:#fff;
+  border:1px solid var(--line-strong);
+  border-bottom:2px solid var(--ink);
+  touch-action:none;
+  width:100%;
+  max-width:520px;
+  height:160px;
+  cursor:crosshair;
+}
+.ghost-btn{
+  margin-top:8px;
+  background:transparent;
+  border:1px solid var(--line-strong);
+  color:var(--ink-soft);
+  padding:6px 12px;
+  font-size:12px;
+  border-radius:var(--radius);
+  cursor:pointer;
+}
+.ghost-btn:hover{border-color:var(--brick); color:var(--brick);}
+.attest-row{margin-top:14px;}
+.checkbox-row{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  text-transform:none;
+  letter-spacing:0;
+  font-size:13.5px;
+  color:var(--ink);
+  cursor:pointer;
+}
+.checkbox-row input{margin-top:3px;}
+.field-inline{margin-top:14px; max-width:200px;}
+.field-inline input{padding:8px 10px; border:1px solid var(--line-strong); border-radius:var(--radius); width:100%;}
+
+.director-col{border-left:1px dashed var(--line-strong); padding-left:24px;}
+
+/* ---------- Submit ---------- */
+.submit-block{padding:28px 32px 34px;}
+.submit-block .field{max-width:360px; margin-bottom:18px;}
+input[type=email]{
+  font-family:var(--font-body);
+  font-size:15px;
+  padding:9px 11px;
+  border:1px solid var(--line-strong);
+  border-radius:var(--radius);
+  width:100%;
+}
+.primary-btn{
+  background:var(--brick);
+  color:#fff;
+  border:none;
+  padding:13px 26px;
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  border-radius:var(--radius);
+  cursor:pointer;
+}
+.primary-btn:hover{background:var(--brick-dark);}
+.primary-btn:disabled{background:#c8beb8; cursor:not-allowed;}
+.status-msg{margin-top:14px; font-size:13.5px; font-weight:600;}
+.status-msg.ok{color:var(--ok);}
+.status-msg.error{color:var(--brick-dark);}
+.status-msg.pending{color:var(--ink-soft);}
+
+@media (max-width:720px){
+  .masthead{flex-direction:column; align-items:flex-start;}
+  .masthead-right{text-align:left;}
+  #scheduleCode{width:100%;}
+  .ident-row{grid-template-columns:1fr;}
+  .sign-block{grid-template-columns:1fr;}
+  .director-col{border-left:none; border-top:1px dashed var(--line-strong); padding-left:0; padding-top:20px;}
+  h1{font-size:22px;}
+}
+
+:focus-visible{outline:2px solid var(--brick); outline-offset:2px;}
+
+/* ---------- Access gate ---------- */
+.sheet{display:none;}
+body.gate-unlocked .sheet{display:block;}
+
+#accessGate{
+  position:fixed;
+  inset:0;
+  background:var(--ink);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  z-index:1000;
+}
+.access-gate-card{
+  background:#fff;
+  max-width:380px;
+  width:100%;
+  padding:32px 28px;
+  border-radius:var(--radius);
+  box-shadow:0 20px 50px -20px rgba(0,0,0,0.6);
+  text-align:center;
+}
+.access-gate-card h2{
+  font-family:var(--font-display);
+  font-size:20px;
+  margin:0 0 10px;
+  color:var(--ink);
+}
+.access-gate-card p{
+  font-size:13.5px;
+  color:var(--ink-soft);
+  margin:0 0 18px;
+  line-height:1.5;
+}
+.access-gate-card code{
+  font-family:var(--font-mono);
+  background:var(--paper);
+  padding:1px 5px;
+  border-radius:3px;
+  font-size:12.5px;
+}
+#accessGatePasscode{
+  width:100%;
+  font-family:var(--font-body);
+  font-size:16px;
+  padding:11px 13px;
+  border:1px solid var(--line-strong);
+  border-radius:var(--radius);
+  margin-bottom:14px;
+  text-align:center;
+  letter-spacing:.1em;
+}
+#accessGatePasscode:focus{outline:2px solid var(--brick); outline-offset:1px;}
+.access-gate-card .primary-btn{width:100%;}
+.access-gate-error{
+  margin-top:12px;
+  color:var(--brick-dark);
+  font-size:13px;
+  font-weight:600;
+  min-height:18px;
+}

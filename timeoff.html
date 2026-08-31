@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Time Off Request</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/timeoff.css" />
+</head>
+<body>
+
+<div class="sheet timeoff-sheet">
+
+  <header class="masthead">
+    <div class="masthead-left">
+      <img src="assets/kfd-patch-logo.png" alt="Krum Fire Department patch" class="dept-logo" />
+      <h1>Time Off<br><span class="sub">Request Form</span></h1>
+    </div>
+    <div class="masthead-right">
+      <a href="index.html" class="ghost-btn back-link">&larr; Back to Timesheet</a>
+    </div>
+  </header>
+
+  <section class="ident-row timeoff-ident">
+    <div class="field">
+      <label for="toEmployeeName">Employee</label>
+      <input type="text" id="toEmployeeName" placeholder="Full name" required />
+    </div>
+  </section>
+
+  <section class="timeoff-grid">
+    <div class="timeoff-row">
+      <div class="field">
+        <label for="toVacationHrs">Vacation time off (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toVacationHrs" />
+      </div>
+      <div class="field">
+        <label for="toVacationAvail">Time available (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toVacationAvail" />
+      </div>
+    </div>
+    <div class="timeoff-row">
+      <div class="field">
+        <label for="toSickHrs">Sick time off (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toSickHrs" />
+      </div>
+      <div class="field">
+        <label for="toSickAvail">Time available (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toSickAvail" />
+      </div>
+    </div>
+    <div class="timeoff-row">
+      <div class="field">
+        <label for="toCompHrs">Comp time off (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toCompHrs" />
+      </div>
+      <div class="field">
+        <label for="toCompAvail">Time available (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toCompAvail" />
+      </div>
+    </div>
+    <div class="timeoff-row">
+      <div class="field">
+        <label for="toHolidayHrs">Holiday (hrs) <span class="field-note">Police &amp; Fire</span></label>
+        <input type="number" min="0" step="0.25" id="toHolidayHrs" />
+      </div>
+      <div class="field">
+        <label for="toHolidayAvail">Time available (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toHolidayAvail" />
+      </div>
+    </div>
+    <div class="timeoff-row single">
+      <div class="field">
+        <label for="toOtherHrs">Other (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toOtherHrs" />
+      </div>
+    </div>
+  </section>
+
+  <section class="timeoff-dates">
+    <div class="timeoff-row">
+      <div class="field">
+        <label for="toBeginDate">Beginning date</label>
+        <input type="date" id="toBeginDate" required />
+      </div>
+      <div class="field">
+        <label for="toThruDate">Thru</label>
+        <input type="date" id="toThruDate" required />
+      </div>
+    </div>
+    <div class="field">
+      <label for="toReturnDate">I will return to work on</label>
+      <input type="date" id="toReturnDate" required />
+    </div>
+  </section>
+
+  <section class="sign-block timeoff-sign-block">
+    <div class="sign-col">
+      <h2>Employee signature</h2>
+      <p class="sign-help">Sign in the box below using your mouse, stylus, or finger.</p>
+      <div class="pad-wrap">
+        <canvas id="toSigPad" width="600" height="180"></canvas>
+        <button type="button" id="toClearSig" class="ghost-btn">Clear</button>
+      </div>
+      <div class="field-inline">
+        <label for="toSigDate">Date</label>
+        <input type="date" id="toSigDate" />
+      </div>
+    </div>
+    <div class="sign-col director-col">
+      <h2>Supervisor &amp; Finance Director signatures</h2>
+      <p class="sign-help">Signed by hand on the printed form after submission &mdash; the Finance Director's
+        signature verifies time available, not approval of time off.</p>
+    </div>
+  </section>
+
+  <section class="submit-block">
+    <div class="field">
+      <label for="toRecipientEmail">Send completed request to</label>
+      <input type="email" id="toRecipientEmail" placeholder="supervisor@example.com" value="rcornelius@krumfire.com" required />
+    </div>
+    <button type="button" id="toSubmitBtn" class="primary-btn">Sign &amp; submit request</button>
+    <div id="toStatusMsg" class="status-msg" role="status" aria-live="polite"></div>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/access-gate.js"></script>
+<script src="js/signature-pad.js"></script>
+<script src="js/timeoff.js"></script>
+</body>
+</html>

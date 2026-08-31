@@ -1,0 +1,44 @@
+.timeoff-sheet .masthead-right{
+  display:flex;
+  align-items:center;
+}
+.back-link{
+  text-decoration:none;
+  display:inline-block;
+}
+
+.timeoff-ident{
+  grid-template-columns:1fr;
+}
+
+.timeoff-grid, .timeoff-dates{
+  padding:22px 32px;
+  border-bottom:1px solid var(--line);
+}
+.timeoff-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  margin-bottom:16px;
+}
+.timeoff-row:last-child{margin-bottom:0;}
+.timeoff-row.single{grid-template-columns:1fr;}
+.timeoff-dates .field{margin-bottom:16px;}
+.timeoff-dates .field:last-child{margin-bottom:0;}
+
+.field-note{
+  text-transform:none;
+  letter-spacing:0;
+  font-weight:400;
+  color:var(--ink-soft);
+  font-size:11px;
+}
+
+.timeoff-sign-block .director-col{
+  border-left:1px dashed var(--line-strong);
+  padding-left:24px;
+}
+
+@media (max-width:720px){
+  .timeoff-row{grid-template-columns:1fr;}
+}
