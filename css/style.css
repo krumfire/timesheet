@@ -146,7 +146,6 @@ h1 .sub{
 
 /* ---------- Week tables ---------- */
 .week{padding:26px 32px 6px; position:relative;}
-#week2{padding-bottom:30px;}
 .week-tab{
   display:inline-block;
   font-family:var(--font-mono);
@@ -161,7 +160,6 @@ h1 .sub{
 .table-scroll{overflow-x:auto; border:1px solid var(--line);}
 table.timesheet-table{
   border-collapse:collapse;
-  table-layout:fixed;
   width:100%;
   min-width:920px;
   font-family:var(--font-mono);
@@ -174,12 +172,10 @@ table.timesheet-table th{
   font-weight:600;
   font-size:11px;
   text-transform:uppercase;
-  letter-spacing:.02em;
-  padding:8px 4px;
+  letter-spacing:.04em;
+  padding:8px 6px;
   text-align:center;
   border-right:1px solid rgba(255,255,255,0.14);
-  overflow-wrap:break-word;
-  word-break:break-word;
 }
 table.timesheet-table th.col-day{
   position:sticky;
@@ -196,7 +192,7 @@ table.timesheet-table td.col-day-cell{
   font-family:var(--font-body);
   font-size:12.5px;
   font-weight:600;
-  padding:8px 6px;
+  padding:8px 8px;
   text-align:left;
   background:var(--paper);
   white-space:nowrap;
@@ -247,6 +243,7 @@ tr.totals-row td:first-child{
   box-shadow:2px 0 4px -2px rgba(0,0,0,0.15);
 }
 
+.grand-totals{padding:16px 32px 30px;}
 tr.grand-row td{
   background:var(--brick);
   color:#fff;
