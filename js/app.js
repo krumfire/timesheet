@@ -10,7 +10,7 @@ const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 let sigPad;
 
 function formatDate(d) {
-  return `${DAY_NAMES[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+  return `${DAY_NAMES[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}`;
 }
 function isoDate(d) {
   return d.toISOString().slice(0, 10);
