@@ -5,10 +5,12 @@ const HOUR_LABELS = {
   holiday: 'Holiday', other: 'Other'
 };
 
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 let sigPad;
 
 function formatDate(d) {
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+  return `${DAY_NAMES[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 }
 function isoDate(d) {
   return d.toISOString().slice(0, 10);
