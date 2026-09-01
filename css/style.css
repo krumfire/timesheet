@@ -146,6 +146,7 @@ h1 .sub{
 
 /* ---------- Week tables ---------- */
 .week{padding:26px 32px 6px; position:relative;}
+#week2{padding-bottom:30px;}
 .week-tab{
   display:inline-block;
   font-family:var(--font-mono);
@@ -244,7 +245,6 @@ tr.totals-row td:first-child{
   box-shadow:2px 0 4px -2px rgba(0,0,0,0.15);
 }
 
-.grand-totals{padding:16px 32px 30px;}
 tr.grand-row td{
   background:var(--brick);
   color:#fff;
