@@ -1,21 +1,50 @@
 let toSigPad;
 
-const TO_DRAFT_KEY = 'krumFireTimeOffDraft_v1';
+const TO_DRAFT_KEY = 'krumFireLeaveRequestDraft_v2';
 let toDraftSaveTimer = null;
 
-const TO_FIELD_IDS = [
-  'toEmployeeName', 'toVacationHrs', 'toVacationAvail', 'toSickHrs', 'toSickAvail',
-  'toCompHrs', 'toCompAvail', 'toHolidayHrs', 'toHolidayAvail', 'toOtherHrs',
-  'toBeginDate', 'toThruDate', 'toReturnDate', 'toSigDate', 'toRecipientEmail'
+const TO_TEXT_FIELD_IDS = [
+  'toEmployeeName', 'toDepartment', 'toDateSubmitted',
+  'toFirstDay', 'toLastDay', 'toReturnDate',
+  'toAVacation', 'toASick', 'toAComp', 'toAHoliday', 'toAOther', 'toACommentsA',
+  'toAbsenceDates', 'toBVacation', 'toBSick', 'toBComp', 'toBHoliday', 'toBOther', 'toACommentsB',
+  'toSigDate', 'toRecipientEmail'
 ];
 
 function toIsoDate(d) {
   return d.toISOString().slice(0, 10);
 }
 
+function toFormatDate(isoStr) {
+  if (!isoStr) return '';
+  const [yy, mm, dd] = isoStr.split('-');
+  if (!yy || !mm || !dd) return isoStr;
+  return `${mm}/${dd}/${yy}`;
+}
+
+function toGetPurpose() {
+  return document.getElementById('toPurposeAccrued').checked ? 'accrued' : 'advance';
+}
+
+function toUpdateSectionVisibility() {
+  const purpose = toGetPurpose();
+  document.getElementById('sectionA').classList.toggle('to-section-inactive', purpose !== 'advance');
+  document.getElementById('sectionB').classList.toggle('to-section-inactive', purpose !== 'accrued');
+}
+
+function toRecalcTotals() {
+  const sumIds = (ids) => ids.reduce((sum, id) => sum + (parseFloat(document.getElementById(id).value) || 0), 0);
+  const totalA = sumIds(['toAVacation', 'toASick', 'toAComp', 'toAHoliday', 'toAOther']);
+  const totalB = sumIds(['toBVacation', 'toBSick', 'toBComp', 'toBHoliday', 'toBOther']);
+  document.getElementById('toTotalRequested').value = totalA ? totalA : '';
+  document.getElementById('toTotalApplied').value = totalB ? totalB : '';
+}
+
 function toCollectData() {
-  const data = {};
-  TO_FIELD_IDS.forEach(id => { data[id] = document.getElementById(id).value; });
+  const data = { purpose: toGetPurpose() };
+  TO_TEXT_FIELD_IDS.forEach(id => { data[id] = document.getElementById(id).value; });
+  data.toTotalRequested = document.getElementById('toTotalRequested').value;
+  data.toTotalApplied = document.getElementById('toTotalApplied').value;
   return data;
 }
 
@@ -37,7 +66,7 @@ function toSaveDraft() {
     try {
       localStorage.setItem(TO_DRAFT_KEY, JSON.stringify(toCollectDraftState()));
     } catch (err) {
-      console.error('Could not save time off draft:', err);
+      console.error('Could not save leave request draft:', err);
     }
   }, 300);
 }
@@ -49,21 +78,27 @@ function toRestoreDraft() {
     if (!raw) return;
     saved = JSON.parse(raw);
   } catch (err) {
-    console.error('Could not read saved time off draft:', err);
+    console.error('Could not read saved leave request draft:', err);
     return;
   }
 
   let restoredSomething = false;
-  TO_FIELD_IDS.forEach(id => {
+  TO_TEXT_FIELD_IDS.forEach(id => {
     if (saved[id]) {
       document.getElementById(id).value = saved[id];
       restoredSomething = true;
     }
   });
+  if (saved.purpose === 'accrued') {
+    document.getElementById('toPurposeAccrued').checked = true;
+    restoredSomething = true;
+  }
   if (saved.signature && toSigPad) {
     toSigPad.loadFromDataURL(saved.signature);
     restoredSomething = true;
   }
+  toUpdateSectionVisibility();
+  toRecalcTotals();
   if (restoredSomething) {
     toSetStatus('Restored your unsubmitted entries from this browser.', 'pending');
   }
@@ -74,87 +109,137 @@ function toClearDraft() {
   try {
     localStorage.removeItem(TO_DRAFT_KEY);
   } catch (err) {
-    console.error('Could not clear saved time off draft:', err);
+    console.error('Could not clear saved leave request draft:', err);
   }
 }
 
-// Field positions were measured directly from the original PDF (text
+// Field positions were measured directly from the original PDF (text/line
 // baselines, top-left origin) and converted to pdf-lib's bottom-left
-// coordinate system inside buildTimeOffPdf(). Each entry is [x, fitzY1].
+// coordinate system inside buildLeaveRequestPdf(). Each entry is [x, fitzY].
 const TO_POSITIONS = {
-  employeeName: [102, 256.1],
-  vacationHrs: [210, 297.5],
-  vacationAvail: [450, 297.5],
-  sickHrs: [176, 325.1],
-  sickAvail: [450, 325.1],
-  compHrs: [182, 352.7],
-  compAvail: [450, 352.7],
-  holidayHrs: [148, 380.3],
-  holidayAvail: [449, 380.3],
-  otherHrs: [133, 407.9],
-  beginDate: [184, 449.3],
-  thruDate: [360, 449.3],
-  returnDate: [273, 476.9],
-  employeeSigText: [227, 518.3],
-  employeeSigDate: [466, 518.3]
+  employeeName: [26, 278.6],
+  department: [246, 278.6],
+  dateSubmitted: [421, 278.6],
+
+  purposeAdvanceCheck: [25.5, 187.9],
+  purposeAccruedCheck: [25.5, 214.1],
+
+  firstDay: [165, 330.2],
+  lastDay: [420, 330.2],
+  returnDate: [165, 355.6],
+  totalRequested: [420, 355.6],
+  aVacation: [165, 399.8],
+  aSick: [165, 418.5],
+  aComp: [165, 437.2],
+  aHoliday: [165, 456.0],
+  aOther: [165, 474.7],
+  commentsA: [298, 392],
+
+  absenceDates: [165, 526.3],
+  totalApplied: [420, 526.3],
+  bVacation: [165, 570.5],
+  bSick: [165, 589.2],
+  bComp: [165, 607.9],
+  bHoliday: [165, 626.6],
+  bOther: [165, 645.4],
+  commentsB: [298, 562],
+
+  employeeSigDate: [420, 697.0]
 };
 const TO_PAGE_HEIGHT = 792;
+const TO_COMMENTS_MAX_CHARS_PER_LINE = 46;
 
-function toFormatDate(isoStr) {
-  if (!isoStr) return '';
-  const [yy, mm, dd] = isoStr.split('-');
-  if (!yy || !mm || !dd) return isoStr;
-  return `${mm}/${dd}/${yy}`;
+function toWrapComment(text, maxLines) {
+  if (!text) return [];
+  const rawLines = text.split(/\r?\n/);
+  const wrapped = [];
+  rawLines.forEach(rawLine => {
+    let remaining = rawLine;
+    while (remaining.length > TO_COMMENTS_MAX_CHARS_PER_LINE) {
+      let breakAt = remaining.lastIndexOf(' ', TO_COMMENTS_MAX_CHARS_PER_LINE);
+      if (breakAt <= 0) breakAt = TO_COMMENTS_MAX_CHARS_PER_LINE;
+      wrapped.push(remaining.slice(0, breakAt).trim());
+      remaining = remaining.slice(breakAt).trim();
+    }
+    if (remaining) wrapped.push(remaining);
+  });
+  if (wrapped.length > maxLines) {
+    const head = wrapped.slice(0, maxLines - 1);
+    head.push(wrapped.slice(maxLines - 1).join(' '));
+    return head;
+  }
+  return wrapped;
 }
 
-async function buildTimeOffPdf(data, signatureDataUrl) {
-  const templateBytes = await fetch('assets/time-off-request-template.pdf').then(r => {
-    if (!r.ok) throw new Error('Could not load the time off request template (' + r.status + ')');
+async function buildLeaveRequestPdf(data, signatureDataUrl) {
+  const templateBytes = await fetch('assets/leave-request-template.pdf').then(r => {
+    if (!r.ok) throw new Error('Could not load the leave request template (' + r.status + ')');
     return r.arrayBuffer();
   });
 
   const { PDFDocument, StandardFonts, rgb } = PDFLib;
   const pdfDoc = await PDFDocument.load(templateBytes);
   const page = pdfDoc.getPage(0);
-  const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-  const size = 11;
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const size = 10;
   const color = rgb(0, 0, 0.55);
 
-  const toY = ([, fitzY1], nudge = 2) => TO_PAGE_HEIGHT - fitzY1 + nudge;
+  const toY = ([, fitzY], nudge = 2) => TO_PAGE_HEIGHT - fitzY + nudge;
   const draw = (text, key, opts = {}) => {
-    if (!text) return;
+    if (!text && text !== 0) return;
     const pos = TO_POSITIONS[key];
-    page.drawText(String(text), { x: pos[0], y: toY(pos, opts.nudge), size: opts.size || size, font, color });
+    page.drawText(String(text), { x: pos[0], y: toY(pos, opts.nudge), size: opts.size || size, font: opts.font || font, color });
   };
 
   draw(data.toEmployeeName, 'employeeName');
-  draw(data.toVacationHrs, 'vacationHrs');
-  draw(data.toVacationAvail, 'vacationAvail');
-  draw(data.toSickHrs, 'sickHrs');
-  draw(data.toSickAvail, 'sickAvail');
-  draw(data.toCompHrs, 'compHrs');
-  draw(data.toCompAvail, 'compAvail');
-  draw(data.toHolidayHrs, 'holidayHrs');
-  draw(data.toHolidayAvail, 'holidayAvail');
-  draw(data.toOtherHrs, 'otherHrs');
-  draw(toFormatDate(data.toBeginDate), 'beginDate');
-  draw(toFormatDate(data.toThruDate), 'thruDate');
-  draw(toFormatDate(data.toReturnDate), 'returnDate');
+  draw(data.toDepartment, 'department');
+  draw(toFormatDate(data.toDateSubmitted), 'dateSubmitted');
+
+  if (data.purpose === 'advance') {
+    page.drawText('X', { x: TO_POSITIONS.purposeAdvanceCheck[0] + 0.5, y: toY(TO_POSITIONS.purposeAdvanceCheck, 1.5), size: 9.5, font: boldFont, color });
+  } else {
+    page.drawText('X', { x: TO_POSITIONS.purposeAccruedCheck[0] + 0.5, y: toY(TO_POSITIONS.purposeAccruedCheck, 1.5), size: 9.5, font: boldFont, color });
+  }
+
+  if (data.purpose === 'advance') {
+    draw(toFormatDate(data.toFirstDay), 'firstDay');
+    draw(toFormatDate(data.toLastDay), 'lastDay');
+    draw(toFormatDate(data.toReturnDate), 'returnDate');
+    draw(data.toTotalRequested, 'totalRequested');
+    draw(data.toAVacation, 'aVacation');
+    draw(data.toASick, 'aSick');
+    draw(data.toAComp, 'aComp');
+    draw(data.toAHoliday, 'aHoliday');
+    draw(data.toAOther, 'aOther');
+    toWrapComment(data.toACommentsA, 6).forEach((line, i) => {
+      page.drawText(line, { x: TO_POSITIONS.commentsA[0], y: TO_PAGE_HEIGHT - TO_POSITIONS.commentsA[1] - i * 13, size: 9, font, color: rgb(0, 0, 0) });
+    });
+  } else {
+    draw(data.toAbsenceDates, 'absenceDates');
+    draw(data.toTotalApplied, 'totalApplied');
+    draw(data.toBVacation, 'bVacation');
+    draw(data.toBSick, 'bSick');
+    draw(data.toBComp, 'bComp');
+    draw(data.toBHoliday, 'bHoliday');
+    draw(data.toBOther, 'bOther');
+    toWrapComment(data.toACommentsB, 6).forEach((line, i) => {
+      page.drawText(line, { x: TO_POSITIONS.commentsB[0], y: TO_PAGE_HEIGHT - TO_POSITIONS.commentsB[1] - i * 13, size: 9, font, color: rgb(0, 0, 0) });
+    });
+  }
+
   draw(toFormatDate(data.toSigDate), 'employeeSigDate');
 
   if (signatureDataUrl) {
     const sigImage = await pdfDoc.embedPng(signatureDataUrl);
-    const sigPos = TO_POSITIONS.employeeSigText;
-    const sigHeight = 26;
+    const sigHeight = 24;
     const sigWidth = sigImage.width * (sigHeight / sigImage.height);
     page.drawImage(sigImage, {
-      x: sigPos[0],
-      y: TO_PAGE_HEIGHT - sigPos[1] - 4,
-      width: Math.min(sigWidth, 190),
+      x: 165,
+      y: TO_PAGE_HEIGHT - 697.0 + 4,
+      width: Math.min(sigWidth, 120),
       height: sigHeight
     });
-  } else {
-    draw(data.toEmployeeName, 'employeeSigText');
   }
 
   return pdfDoc.save();
@@ -234,8 +319,13 @@ async function toOnSubmit() {
   const data = toCollectData();
 
   if (!data.toEmployeeName) { toSetStatus('Enter the employee name.', 'error'); return; }
-  if (!data.toBeginDate || !data.toThruDate || !data.toReturnDate) {
-    toSetStatus('Fill in the beginning date, thru date, and return-to-work date.', 'error');
+  if (!data.toDateSubmitted) { toSetStatus('Enter the date submitted.', 'error'); return; }
+  if (data.purpose === 'advance' && (!data.toFirstDay || !data.toLastDay || !data.toReturnDate)) {
+    toSetStatus('Fill in the first day, last day, and return-to-work date for Section A.', 'error');
+    return;
+  }
+  if (data.purpose === 'accrued' && !data.toAbsenceDates) {
+    toSetStatus('Fill in the date(s) of absence for Section B.', 'error');
     return;
   }
   if (!data.toRecipientEmail) { toSetStatus('Enter the recipient email address.', 'error'); return; }
@@ -255,20 +345,24 @@ async function toOnSubmit() {
 
   try {
     const signatureDataUrl = toSigPad.toDataURL();
-    const pdfBytes = await buildTimeOffPdf(data, signatureDataUrl);
+    const pdfBytes = await buildLeaveRequestPdf(data, signatureDataUrl);
     const pdfBase64 = toArrayBufferToBase64(pdfBytes);
-    const filename = `TimeOffRequest_${data.toEmployeeName.replace(/\s+/g, '_')}_${data.toBeginDate}.pdf`;
+    const filename = `LeaveRequest_${data.toEmployeeName.replace(/\s+/g, '_')}_${data.toDateSubmitted}.pdf`;
 
     toSetStatus('Sending email…', 'pending');
+
+    const period = data.purpose === 'advance'
+      ? `${data.toFirstDay} to ${data.toLastDay}`
+      : `absence ${data.toAbsenceDates}`;
 
     const result = await toSubmitRequest({
       recipient: data.toRecipientEmail,
       employeeName: data.toEmployeeName,
-      payPeriod: `${data.toBeginDate} to ${data.toThruDate}`,
+      payPeriod: period,
       filename,
       fileBase64: pdfBase64,
       mimeType: 'application/pdf',
-      emailSubjectPrefix: 'Time off request'
+      emailSubjectPrefix: 'Leave request'
     });
 
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -282,7 +376,7 @@ async function toOnSubmit() {
     setTimeout(() => URL.revokeObjectURL(url), 2000);
 
     if (result.ok && !result.unconfirmed) {
-      toSetStatus('Time off request emailed successfully. A copy has also been downloaded for your records.', 'ok');
+      toSetStatus('Leave request emailed successfully. A copy has also been downloaded for your records.', 'ok');
       toClearDraft();
     } else if (result.ok && result.unconfirmed) {
       toSetStatus('Request submitted, but this browser could not confirm delivery — check that it arrived, or ask the recipient. A copy has been downloaded for your records.', 'pending');
@@ -308,6 +402,15 @@ function toInit() {
   try {
     const today = new Date();
     document.getElementById('toSigDate').value = toIsoDate(today);
+    document.getElementById('toDateSubmitted').value = toIsoDate(today);
+
+    document.getElementById('toPurposeAdvance').addEventListener('change', toUpdateSectionVisibility);
+    document.getElementById('toPurposeAccrued').addEventListener('change', toUpdateSectionVisibility);
+    toUpdateSectionVisibility();
+
+    document.querySelectorAll('.to-a-hours, .to-b-hours').forEach(el => {
+      el.addEventListener('input', toRecalcTotals);
+    });
 
     toSigPad = createSignaturePad(document.getElementById('toSigPad'));
     window.addEventListener('krumfire:gate-unlocked', () => toSigPad.resize());
@@ -323,7 +426,7 @@ function toInit() {
     document.getElementById('toSigPad').addEventListener('mouseup', toSaveDraft);
     document.getElementById('toSigPad').addEventListener('touchend', toSaveDraft);
   } catch (err) {
-    console.error('Error while setting up the time off form:', err);
+    console.error('Error while setting up the leave request form:', err);
     toSetStatus('The form did not load correctly (' + err.message + '). Try refreshing the page.', 'error');
   }
 }
