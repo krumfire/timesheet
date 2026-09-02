@@ -4,7 +4,8 @@ A static web app with two forms:
 
 - **`index.html`** — the "14 Day Schedule TIME RECORD (non-exempt)" biweekly
   timesheet
-- **`timeoff.html`** — the City of Krum Time Off Request form
+- **`timeoff.html`** — the City of Krum "Leave Request or Application of
+  Accrued Hours" form
 
 Both work the same way: auto-calculate anything the original document
 calculates, capture a hand-drawn employee signature, and submit **the
@@ -21,7 +22,7 @@ rebuild either document from scratch:
   browser, writes only the specific cells that hold employee name, pay
   period, daily hours, notes, signature date, and the signature image, and
   leaves every formula, column, color, and border exactly as it was.
-- The time off request opens the real `assets/time-off-request-template.pdf`
+- The leave request opens the real `assets/leave-request-template.pdf`
   file and overlays the typed entries and signature directly on top of it at
   the same positions as the original form's blank lines — the underlying
   PDF (including the City seal) is untouched.
@@ -159,25 +160,31 @@ fresh** button next to the pay-period field to manually clear it — handy on
 a shared station computer, or if the form is being reused for a different
 person or pay period without submitting first.
 
-## 5. Using the Time Off Request form
+## 5. Using the Leave Request form
 
 Click **Request Time Off →** in the timesheet's header, or go directly to
 `timeoff.html`. It works the same way as the timesheet:
 
-1. Fill in employee name, hours requested/available for each category
-   (Vacation, Sick, Comp, Holiday, Other), beginning/thru dates, and the
-   return-to-work date.
-2. Sign in the signature box and confirm the date.
-3. Enter the recipient's email (defaults to `rcornelius@krumfire.com`, same
+1. Pick a **Purpose** at the top — *Advance Request for Time Off* (Section A)
+   or *Application of Accrued Hours Following an Absence* (Section B). Only
+   the matching section is used; the other is dimmed and skipped when
+   filling the PDF, exactly like the original form's "select one" intent.
+2. Fill in employee name, department, and date submitted.
+3. Fill in the fields for whichever section applies — dates, and hours per
+   category (Vacation, Sick, Comp Time, Holiday, Other). The "Total hours"
+   field for that section fills in automatically as you type. Add comments
+   if needed.
+4. Sign in the signature box and confirm the date.
+5. Enter the recipient's email (defaults to `rcornelius@krumfire.com`, same
    as the timesheet — change it if a request needs to go elsewhere).
-4. Click **Sign & submit request**. This fills in and emails the *original*
-   Time Off Request PDF, completely separately from the timesheet — it's a
+6. Click **Sign & submit request**. This fills in and emails the *original*
+   Leave Request PDF, completely separately from the timesheet — it's a
    different button, different file, different email, though both use the
    same Apps Script backend to send.
 
-The **Supervisor** and **Finance Director** signature lines are left blank
-in the submitted PDF, same as the Director signature on the timesheet — printed and signed by hand after submission (the form itself notes the
-Finance Director's signature verifies time available, not approval).
+The **Supervisor signature** and **Approved/Denied** checkboxes are left
+blank in the submitted PDF, same as the Director signature on the
+timesheet — completed by hand after submission.
 
 Entries autosave in the browser the same way the timesheet's do, under a
 separate draft key, and clear once a request is successfully emailed.
@@ -185,18 +192,18 @@ separate draft key, and clear once a request is successfully emailed.
 ## Files
 
 ```
-index.html                              the timesheet form
-timeoff.html                            the time off request form
-css/style.css                           shared styling
-css/timeoff.css                         time off form-specific styling
-js/config.js                            <- put your Apps Script URL and passcode hash here
-js/access-gate.js                       shared passcode gate (used by both forms)
-js/signature-pad.js                     dependency-free canvas signature capture (used by both forms)
-js/app.js                               timesheet: calculations, spreadsheet filling, submission
-js/timeoff.js                           time off request: PDF filling, submission
-apps-script/Code.gs                     paste into script.google.com (backs both forms)
-assets/timesheet-template.xlsx          the original spreadsheet — do not edit
-assets/time-off-request-template.pdf    the original time off form — do not edit
+index.html                          the timesheet form
+timeoff.html                        the leave request form
+css/style.css                       shared styling
+css/timeoff.css                     leave request form-specific styling
+js/config.js                        <- put your Apps Script URL and passcode hash here
+js/access-gate.js                   shared passcode gate (used by both forms)
+js/signature-pad.js                 dependency-free canvas signature capture (used by both forms)
+js/app.js                           timesheet: calculations, spreadsheet filling, submission
+js/timeoff.js                       leave request: PDF filling, submission
+apps-script/Code.gs                 paste into script.google.com (backs both forms)
+assets/timesheet-template.xlsx      the original spreadsheet — do not edit
+assets/leave-request-template.pdf   the original leave request form — do not edit
 ```
 
 ## Customizing
@@ -207,15 +214,16 @@ assets/time-off-request-template.pdf    the original time off form — do not ed
   at the top of `js/app.js` and the matching `<th>` cells in `index.html`
   if your department's pay codes or column layout differ. `HOUR_COLUMN_LETTERS`
   must match the actual column letters in `timesheet-template.xlsx`.
-- **Time off form field positions**: `TO_POSITIONS` at the top of
+- **Leave request field positions**: `TO_POSITIONS` at the top of
   `js/timeoff.js` maps each field to an exact `[x, y]` position on the PDF
-  page (measured from the original form's text, top-left origin, converted
-  to PDF coordinates inside `buildTimeOffPdf()`). If City Hall issues a
-  revised time off form, replace `assets/time-off-request-template.pdf` and
-  re-measure these coordinates — the easiest way is opening the new PDF
-  with a tool like PyMuPDF (`page.get_text("words")`) to get exact
-  positions for each blank line, the same way the current ones were
-  measured.
+  page (measured from the original form's text/line positions, top-left
+  origin, converted to PDF coordinates inside `buildLeaveRequestPdf()`). If
+  City Hall issues a revised form, replace
+  `assets/leave-request-template.pdf` and re-measure these coordinates —
+  the easiest way is opening the new PDF with a tool like PyMuPDF
+  (`page.get_text("words")` for label positions, `page.get_drawings()` for
+  the blank lines and comment boxes) to get exact positions, the same way
+  the current ones were measured.
 - **Template changes**: if City Hall issues a revised spreadsheet, replace
   `assets/timesheet-template.xlsx` with the new file. As long as the cell
   addresses for employee name (`C3`), pay period start (`C5`), the daily
