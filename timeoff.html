@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Time Off Request</title>
+<title>Leave Request</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
@@ -20,83 +20,127 @@
   <header class="masthead">
     <div class="masthead-left">
       <img src="assets/kfd-patch-logo.png" alt="Krum Fire Department patch" class="dept-logo" />
-      <h1>Time Off<br><span class="sub">Request Form</span></h1>
+      <h1>Leave Request<br><span class="sub">or Application of Accrued Hours</span></h1>
     </div>
     <div class="masthead-right">
       <a href="index.html" class="ghost-btn back-link">&larr; Back to Timesheet</a>
     </div>
   </header>
 
+  <section class="timeoff-purpose">
+    <label class="purpose-heading">Purpose (select one)</label>
+    <label class="purpose-option">
+      <input type="radio" name="toPurpose" id="toPurposeAdvance" value="advance" checked />
+      <span>Advance Request for Time Off &mdash; complete Section A</span>
+    </label>
+    <label class="purpose-option">
+      <input type="radio" name="toPurpose" id="toPurposeAccrued" value="accrued" />
+      <span>Application of Accrued Hours Following an Absence &mdash; complete Section B</span>
+    </label>
+  </section>
+
   <section class="ident-row timeoff-ident">
     <div class="field">
-      <label for="toEmployeeName">Employee</label>
+      <label for="toEmployeeName">Employee name</label>
       <input type="text" id="toEmployeeName" placeholder="Full name" required />
     </div>
-  </section>
-
-  <section class="timeoff-grid">
-    <div class="timeoff-row">
-      <div class="field">
-        <label for="toVacationHrs">Vacation time off (hrs)</label>
-        <input type="number" min="0" step="0.25" id="toVacationHrs" />
-      </div>
-      <div class="field">
-        <label for="toVacationAvail">Time available (hrs)</label>
-        <input type="number" min="0" step="0.25" id="toVacationAvail" />
-      </div>
+    <div class="field">
+      <label for="toDepartment">Department</label>
+      <input type="text" id="toDepartment" placeholder="e.g. Fire" value="Fire" />
     </div>
-    <div class="timeoff-row">
-      <div class="field">
-        <label for="toSickHrs">Sick time off (hrs)</label>
-        <input type="number" min="0" step="0.25" id="toSickHrs" />
-      </div>
-      <div class="field">
-        <label for="toSickAvail">Time available (hrs)</label>
-        <input type="number" min="0" step="0.25" id="toSickAvail" />
-      </div>
-    </div>
-    <div class="timeoff-row">
-      <div class="field">
-        <label for="toCompHrs">Comp time off (hrs)</label>
-        <input type="number" min="0" step="0.25" id="toCompHrs" />
-      </div>
-      <div class="field">
-        <label for="toCompAvail">Time available (hrs)</label>
-        <input type="number" min="0" step="0.25" id="toCompAvail" />
-      </div>
-    </div>
-    <div class="timeoff-row">
-      <div class="field">
-        <label for="toHolidayHrs">Holiday (hrs) <span class="field-note">Police &amp; Fire</span></label>
-        <input type="number" min="0" step="0.25" id="toHolidayHrs" />
-      </div>
-      <div class="field">
-        <label for="toHolidayAvail">Time available (hrs)</label>
-        <input type="number" min="0" step="0.25" id="toHolidayAvail" />
-      </div>
-    </div>
-    <div class="timeoff-row single">
-      <div class="field">
-        <label for="toOtherHrs">Other (hrs)</label>
-        <input type="number" min="0" step="0.25" id="toOtherHrs" />
-      </div>
+    <div class="field">
+      <label for="toDateSubmitted">Date submitted</label>
+      <input type="date" id="toDateSubmitted" required />
     </div>
   </section>
 
-  <section class="timeoff-dates">
+  <section class="timeoff-section" id="sectionA">
+    <div class="timeoff-section-heading">Section A &ndash; Advance Request for Time Off</div>
     <div class="timeoff-row">
       <div class="field">
-        <label for="toBeginDate">Beginning date</label>
-        <input type="date" id="toBeginDate" required />
+        <label for="toFirstDay">First day of leave</label>
+        <input type="date" id="toFirstDay" />
       </div>
       <div class="field">
-        <label for="toThruDate">Thru</label>
-        <input type="date" id="toThruDate" required />
+        <label for="toLastDay">Last day of leave</label>
+        <input type="date" id="toLastDay" />
+      </div>
+    </div>
+    <div class="timeoff-row">
+      <div class="field">
+        <label for="toReturnDate">Return to work date</label>
+        <input type="date" id="toReturnDate" />
+      </div>
+      <div class="field">
+        <label for="toTotalRequested">Total hours requested <span class="field-note">auto-totaled</span></label>
+        <input type="number" id="toTotalRequested" readonly />
+      </div>
+    </div>
+    <div class="timeoff-hours-grid">
+      <div class="field">
+        <label for="toAVacation">Vacation (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toAVacation" class="to-a-hours" />
+      </div>
+      <div class="field">
+        <label for="toASick">Sick (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toASick" class="to-a-hours" />
+      </div>
+      <div class="field">
+        <label for="toAComp">Comp time (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toAComp" class="to-a-hours" />
+      </div>
+      <div class="field">
+        <label for="toAHoliday">Holiday (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toAHoliday" class="to-a-hours" />
+      </div>
+      <div class="field">
+        <label for="toAOther">Other (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toAOther" class="to-a-hours" />
       </div>
     </div>
     <div class="field">
-      <label for="toReturnDate">I will return to work on</label>
-      <input type="date" id="toReturnDate" required />
+      <label for="toACommentsA">Comments (optional)</label>
+      <textarea id="toACommentsA" rows="3"></textarea>
+    </div>
+  </section>
+
+  <section class="timeoff-section" id="sectionB">
+    <div class="timeoff-section-heading">Section B &ndash; Leave Designation Following an Absence</div>
+    <div class="timeoff-row">
+      <div class="field">
+        <label for="toAbsenceDates">Date(s) of absence</label>
+        <input type="text" id="toAbsenceDates" placeholder="e.g. 3/1/2026 - 3/3/2026" />
+      </div>
+      <div class="field">
+        <label for="toTotalApplied">Total hours applied <span class="field-note">auto-totaled</span></label>
+        <input type="number" id="toTotalApplied" readonly />
+      </div>
+    </div>
+    <div class="timeoff-hours-grid">
+      <div class="field">
+        <label for="toBVacation">Vacation (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toBVacation" class="to-b-hours" />
+      </div>
+      <div class="field">
+        <label for="toBSick">Sick (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toBSick" class="to-b-hours" />
+      </div>
+      <div class="field">
+        <label for="toBComp">Comp time (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toBComp" class="to-b-hours" />
+      </div>
+      <div class="field">
+        <label for="toBHoliday">Holiday (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toBHoliday" class="to-b-hours" />
+      </div>
+      <div class="field">
+        <label for="toBOther">Other (hrs)</label>
+        <input type="number" min="0" step="0.25" id="toBOther" class="to-b-hours" />
+      </div>
+    </div>
+    <div class="field">
+      <label for="toACommentsB">Comments (optional)</label>
+      <textarea id="toACommentsB" rows="3"></textarea>
     </div>
   </section>
 
@@ -114,9 +158,8 @@
       </div>
     </div>
     <div class="sign-col director-col">
-      <h2>Supervisor &amp; Finance Director signatures</h2>
-      <p class="sign-help">Signed by hand on the printed form after submission &mdash; the Finance Director's
-        signature verifies time available, not approval of time off.</p>
+      <h2>Supervisor signature &amp; approval</h2>
+      <p class="sign-help">Signed and marked Approved/Denied by hand on the printed form after submission.</p>
     </div>
   </section>
 
