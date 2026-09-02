@@ -8,13 +8,70 @@
 }
 
 .timeoff-ident{
-  grid-template-columns:1fr;
+  grid-template-columns:1fr 1fr 1fr;
 }
 
-.timeoff-grid, .timeoff-dates{
+/* ---------- Purpose selector ---------- */
+.timeoff-purpose{
+  padding:20px 32px;
+  border-bottom:1px solid var(--line);
+  background:var(--paper);
+}
+.purpose-heading{
+  display:block;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  color:var(--ink-soft);
+  margin-bottom:10px;
+}
+.purpose-option{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:8px 10px;
+  border:1px solid var(--line-strong);
+  border-radius:var(--radius);
+  background:#fff;
+  margin-bottom:8px;
+  cursor:pointer;
+  font-size:14px;
+  color:var(--ink);
+}
+.purpose-option:last-child{margin-bottom:0;}
+.purpose-option input{margin-top:3px;}
+.purpose-option:has(input:checked){
+  border-color:var(--brick);
+  background:#fdf4f2;
+}
+
+/* ---------- Section A / B ---------- */
+.timeoff-section{
   padding:22px 32px;
   border-bottom:1px solid var(--line);
+  transition:opacity .15s ease;
 }
+.timeoff-section-heading{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:16px;
+  color:var(--ink);
+  margin-bottom:16px;
+  padding-bottom:8px;
+  border-bottom:2px solid var(--ink);
+}
+.to-section-inactive{
+  opacity:.4;
+}
+.to-section-inactive .timeoff-section-heading::after{
+  content:" (not selected above)";
+  font-family:var(--font-body);
+  font-weight:400;
+  font-size:12px;
+  color:var(--ink-soft);
+  text-transform:none;
+}
+
 .timeoff-row{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -22,9 +79,13 @@
   margin-bottom:16px;
 }
 .timeoff-row:last-child{margin-bottom:0;}
-.timeoff-row.single{grid-template-columns:1fr;}
-.timeoff-dates .field{margin-bottom:16px;}
-.timeoff-dates .field:last-child{margin-bottom:0;}
+
+.timeoff-hours-grid{
+  display:grid;
+  grid-template-columns:repeat(5, 1fr);
+  gap:14px;
+  margin-bottom:16px;
+}
 
 .field-note{
   text-transform:none;
@@ -39,6 +100,18 @@
   padding-left:24px;
 }
 
+textarea{
+  width:100%;
+  font-family:var(--font-body);
+  font-size:14px;
+  padding:9px 11px;
+  border:1px solid var(--line-strong);
+  border-radius:var(--radius);
+  resize:vertical;
+}
+
 @media (max-width:720px){
+  .timeoff-ident{grid-template-columns:1fr;}
   .timeoff-row{grid-template-columns:1fr;}
+  .timeoff-hours-grid{grid-template-columns:1fr 1fr;}
 }
