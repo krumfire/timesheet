@@ -146,7 +146,10 @@ function normalizeSyncCode(code) {
 
 function findDraftRow(rows, syncCode, formType) {
   for (var i = 1; i < rows.length; i++) { // skip header row
-    if (rows[i][0] === syncCode && rows[i][1] === formType) return i;
+    // Google Sheets can silently store a numeric-looking code (e.g. "482100")
+    // as a Number rather than text, which would fail a strict === comparison
+    // against the string we're looking for — coerce both sides to string.
+    if (String(rows[i][0]) === String(syncCode) && String(rows[i][1]) === String(formType)) return i;
   }
   return -1;
 }
@@ -157,6 +160,10 @@ function getDraftSheet() {
   if (!sheet) {
     sheet = ss.insertSheet("Drafts");
     sheet.appendRow(["syncCode", "formType", "dataJson", "updatedAt"]);
+    // Force columns A and B to plain text so a numeric-looking sync code
+    // (e.g. "482100") is never silently reinterpreted as a Number, which
+    // would break the exact-match lookup in findDraftRow.
+    sheet.getRange("A1:B10000").setNumberFormat("@");
   }
   return sheet;
 }
