@@ -117,8 +117,9 @@ function restoreDraft() {
 async function syncFromCloud(localSaved, opts = {}) {
   const result = await pullDraftFromCloud('timesheet');
   if (!result.ok) {
-    if (opts.announceNoChange !== false) setStatus('Could not check for synced entries (' + (result.message || 'network error') + ').', 'error');
-    return 'Sync check failed.';
+    const detail = result.message || 'network error — check your connection';
+    if (opts.announceNoChange !== false) setStatus('Could not check for synced entries (' + detail + ').', 'error');
+    return 'Sync failed: ' + detail;
   }
   const localUpdatedAt = (localSaved && localSaved.updatedAt) || 0;
   if (result.found && result.updatedAt && result.updatedAt > localUpdatedAt) {

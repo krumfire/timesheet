@@ -117,8 +117,9 @@ function toRestoreDraft() {
 async function toSyncFromCloud(localSaved, opts = {}) {
   const result = await pullDraftFromCloud('leaveRequest');
   if (!result.ok) {
-    if (opts.announceNoChange !== false) toSetStatus('Could not check for synced entries (' + (result.message || 'network error') + ').', 'error');
-    return 'Sync check failed.';
+    const detail = result.message || 'network error — check your connection';
+    if (opts.announceNoChange !== false) toSetStatus('Could not check for synced entries (' + detail + ').', 'error');
+    return 'Sync failed: ' + detail;
   }
   const localUpdatedAt = (localSaved && localSaved.updatedAt) || 0;
   if (result.found && result.updatedAt && result.updatedAt > localUpdatedAt) {
