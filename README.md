@@ -78,6 +78,47 @@ is no database.
 If you ever edit `Code.gs`, you need to **Deploy → Manage deployments →
 Edit → New version** for the changes to go live at the same URL.
 
+### Enable cross-device sync (optional)
+
+Both forms have a **Sync code** field. Each person gets a random code
+(e.g. `JT4821`) assigned automatically the first time they open a form —
+you don't invent one, which keeps different people's drafts from
+colliding with each other in the shared sheet. To continue on a second
+device, read the code shown on the first device and type it in on the
+second. This needs one extra one-time setup step, since it stores
+in-progress drafts in a Google Sheet:
+
+1. Go to [sheets.google.com](https://sheets.google.com) and create a new
+   blank spreadsheet (any name).
+2. Copy its ID from the URL — the long string between `/d/` and `/edit`:
+   `docs.google.com/spreadsheets/d/`**`THIS_PART`**`/edit`
+3. Open your Apps Script project, paste that ID into `DRAFT_SHEET_ID` near
+   the top of `Code.gs`.
+4. **Deploy → Manage deployments → Edit → New version → Deploy.**
+
+The script creates a "Drafts" tab in that sheet automatically the first
+time something syncs. If you skip this setup, both forms still work
+exactly as before — the sync code field just won't do anything, and
+autosave stays browser-only.
+
+**Important trade-off:** once this is enabled, every autosave pushes the
+current draft to the shared sheet in the background under that person's
+assigned code — not just when someone deliberately links a second device.
+This is what makes "enter on your phone, immediately open on your PC"
+work without an extra step, but it does mean draft data leaves the device
+automatically for anyone using either form, whether or not they ever
+intend to switch devices. If that's not acceptable for your situation,
+leave `DRAFT_SHEET_ID` blank and skip this feature — autosave stays fully
+on-device with no setup needed.
+
+**Note:** synced drafts aren't encrypted and rely on the sync code being
+kept private, the same way the [passcode gate](#set-a-shared-passcode)
+does. Auto-assigned codes are random from a 6-character, ~1-billion-value
+space, so accidental collisions between different people are very
+unlikely — but anyone who does see or guess a code can read that draft,
+so don't rely on this for anything highly sensitive, and treat a code
+like a lightweight password once assigned.
+
 ## 2. Connect the frontend to it
 
 Open `js/config.js` in this repo and paste your URL in:
@@ -154,16 +195,28 @@ file, for the director to sign by hand after printing.
 **Entries are saved automatically in the browser** (name, pay period, every
 hour entered, notes, and the signature) as you type, so refreshing the page
 or closing the tab by accident doesn't lose your work. This is stored only
-in that browser (`localStorage`, nothing sent anywhere) and is cleared
-automatically once a timesheet is successfully emailed. Use the **Start
-fresh** button next to the pay-period field to manually clear it — handy on
-a shared station computer, or if the form is being reused for a different
-person or pay period without submitting first.
+in that browser (`localStorage`, nothing sent anywhere by default) and is
+cleared automatically once a timesheet is successfully emailed. Use the
+**Start fresh** button next to the pay-period field to manually clear it —
+handy on a shared station computer, or if the form is being reused for a
+different person or pay period without submitting first.
+
+**To continue on a different device or browser**, the **Sync code** field
+already has a code in it — assigned automatically, unique to this device.
+Read that code (or the status line under it, which shows it the first
+time) and type it into the Sync code field on your other device, then tap
+**Sync now** there — your entries appear. Whichever device has the most
+recent changes "wins" when syncing, so it's safe to tap **Sync now** any
+time to pull in changes made elsewhere. This needs the one-time sync setup
+above; without it, the field does nothing and entries stay local to that
+device only. The timesheet and Leave Request form sync independently of
+each other, even when using the same code.
 
 ## 5. Using the Leave Request form
 
 Click **Request Time Off →** in the timesheet's header, or go directly to
-`timeoff.html`. It works the same way as the timesheet:
+`timeoff.html`. It works the same way as the timesheet, including its own
+**Sync code** field for continuing entries on another device:
 
 1. Pick a **Purpose** at the top — *Advance Request for Time Off* (Section A)
    or *Application of Accrued Hours Following an Absence* (Section B). Only
@@ -198,6 +251,7 @@ css/style.css                       shared styling
 css/timeoff.css                     leave request form-specific styling
 js/config.js                        <- put your Apps Script URL and passcode hash here
 js/access-gate.js                   shared passcode gate (used by both forms)
+js/draft-sync.js                    shared cross-device draft sync (used by both forms)
 js/signature-pad.js                 dependency-free canvas signature capture (used by both forms)
 js/app.js                           timesheet: calculations, spreadsheet filling, submission
 js/timeoff.js                       leave request: PDF filling, submission
@@ -208,6 +262,10 @@ assets/leave-request-template.pdf   the original leave request form — do not e
 
 ## Customizing
 
+- **Synced draft retention**: `DRAFT_MAX_AGE_DAYS` near the top of `Code.gs`
+  (default 14) controls how long an unsubmitted synced draft is kept before
+  it's treated as stale and cleaned up. Doesn't affect browser-only
+  autosave (drafts stay on-device indefinitely until submitted or cleared).
 - **Schedule label** ("FIRE 106 HOURS"): editable directly in the form; the
   value typed in is written into cell `N1` of the submitted spreadsheet.
 - **Column set**: edit `HOUR_KEYS` / `HOUR_LABELS` / `HOUR_COLUMN_LETTERS`

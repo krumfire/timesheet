@@ -54,6 +54,17 @@
     </div>
   </section>
 
+  <section class="sync-row">
+    <div class="field">
+      <label for="syncCodeInput">Sync code <span class="field-note">optional &mdash; use the same code on another device to continue this entry there</span></label>
+      <div class="sync-controls">
+        <input type="text" id="syncCodeInput" placeholder="e.g. JT-4821" maxlength="20" />
+        <button type="button" id="syncNowBtn" class="ghost-btn">Sync now</button>
+      </div>
+    </div>
+    <div id="syncStatusMsg" class="sync-status"></div>
+  </section>
+
   <section class="timeoff-section" id="sectionA">
     <div class="timeoff-section-heading">Section A &ndash; Advance Request for Time Off</div>
     <div class="timeoff-row">
@@ -177,6 +188,7 @@
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/access-gate.js"></script>
+<script src="js/draft-sync.js"></script>
 <script src="js/signature-pad.js"></script>
 <script src="js/timeoff.js"></script>
 </body>

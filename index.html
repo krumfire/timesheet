@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>KFD Timesheet</title>
+<title>14-Day Time Record</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
@@ -45,6 +45,17 @@
       <label>&nbsp;</label>
       <button type="button" id="startFreshBtn" class="ghost-btn">Start fresh (clear saved entries)</button>
     </div>
+  </section>
+
+  <section class="sync-row">
+    <div class="field">
+      <label for="syncCodeInput">Sync code <span class="field-note">optional &mdash; use the same code on another device to continue this entry there</span></label>
+      <div class="sync-controls">
+        <input type="text" id="syncCodeInput" placeholder="e.g. JT-4821" maxlength="20" />
+        <button type="button" id="syncNowBtn" class="ghost-btn">Sync now</button>
+      </div>
+    </div>
+    <div id="syncStatusMsg" class="sync-status"></div>
   </section>
 
   <section class="week" id="week1">
@@ -223,6 +234,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/access-gate.js"></script>
+<script src="js/draft-sync.js"></script>
 <script src="js/signature-pad.js"></script>
 <script src="js/app.js"></script>
 </body>
