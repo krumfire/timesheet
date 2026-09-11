@@ -62,46 +62,78 @@ function toCollectDraftState() {
 
 function toSaveDraft() {
   clearTimeout(toDraftSaveTimer);
-  toDraftSaveTimer = setTimeout(() => {
+  toDraftSaveTimer = setTimeout(async () => {
+    const state = toCollectDraftState();
+    state.updatedAt = Date.now();
     try {
-      localStorage.setItem(TO_DRAFT_KEY, JSON.stringify(toCollectDraftState()));
+      localStorage.setItem(TO_DRAFT_KEY, JSON.stringify(state));
     } catch (err) {
       console.error('Could not save leave request draft:', err);
+    }
+    if (getSyncCode()) {
+      const result = await pushDraftToCloud('leaveRequest', state);
+      if (!result.ok && result.message) console.error('Cloud sync (save) failed:', result.message);
     }
   }, 300);
 }
 
-function toRestoreDraft() {
-  let saved;
-  try {
-    const raw = localStorage.getItem(TO_DRAFT_KEY);
-    if (!raw) return;
-    saved = JSON.parse(raw);
-  } catch (err) {
-    console.error('Could not read saved leave request draft:', err);
-    return;
-  }
-
+function toApplyDraftToForm(saved) {
   let restoredSomething = false;
   TO_TEXT_FIELD_IDS.forEach(id => {
-    if (saved[id]) {
-      document.getElementById(id).value = saved[id];
-      restoredSomething = true;
+    const el = document.getElementById(id);
+    if (saved[id] !== undefined) {
+      el.value = saved[id] || '';
+      if (saved[id]) restoredSomething = true;
     }
   });
-  if (saved.purpose === 'accrued') {
-    document.getElementById('toPurposeAccrued').checked = true;
-    restoredSomething = true;
-  }
+  document.getElementById('toPurposeAccrued').checked = saved.purpose === 'accrued';
+  document.getElementById('toPurposeAdvance').checked = saved.purpose !== 'accrued';
   if (saved.signature && toSigPad) {
     toSigPad.loadFromDataURL(saved.signature);
     restoredSomething = true;
   }
   toUpdateSectionVisibility();
   toRecalcTotals();
-  if (restoredSomething) {
-    toSetStatus('Restored your unsubmitted entries from this browser.', 'pending');
+  return restoredSomething;
+}
+
+function toRestoreDraft() {
+  let localSaved = null;
+  try {
+    const raw = localStorage.getItem(TO_DRAFT_KEY);
+    if (raw) localSaved = JSON.parse(raw);
+  } catch (err) {
+    console.error('Could not read saved leave request draft:', err);
   }
+
+  if (localSaved) {
+    const restoredSomething = toApplyDraftToForm(localSaved);
+    if (restoredSomething) toSetStatus('Restored your unsubmitted entries from this browser.', 'pending');
+  }
+
+  if (getSyncCode()) toSyncFromCloud(localSaved, { announceNoChange: false });
+}
+
+async function toSyncFromCloud(localSaved, opts = {}) {
+  const result = await pullDraftFromCloud('leaveRequest');
+  if (!result.ok) {
+    if (opts.announceNoChange !== false) toSetStatus('Could not check for synced entries (' + (result.message || 'network error') + ').', 'error');
+    return 'Sync check failed.';
+  }
+  const localUpdatedAt = (localSaved && localSaved.updatedAt) || 0;
+  if (result.found && result.updatedAt && result.updatedAt > localUpdatedAt) {
+    toApplyDraftToForm(result.data);
+    try { localStorage.setItem(TO_DRAFT_KEY, JSON.stringify(Object.assign({}, result.data, { updatedAt: result.updatedAt }))); } catch (e) { /* ignore */ }
+    toSetStatus('Loaded newer entries synced from another device.', 'ok');
+    return 'Loaded newer synced entries.';
+  }
+  const state = toCollectDraftState();
+  state.updatedAt = Date.now();
+  const pushResult = await pushDraftToCloud('leaveRequest', state);
+  if (opts.announceNoChange !== false) {
+    toSetStatus(pushResult.ok ? 'This device is up to date and synced.' : 'Synced locally, but could not reach the sync server.', pushResult.ok ? 'ok' : 'error');
+  }
+  return pushResult.ok ? 'Up to date.' : 'Could not reach sync server.';
 }
 
 function toClearDraft() {
@@ -420,6 +452,15 @@ function toInit() {
     });
 
     toRestoreDraft();
+
+    initSyncControls('syncCodeInput', 'syncNowBtn', 'syncStatusMsg', (code) => {
+      let localSaved = null;
+      try {
+        const raw = localStorage.getItem(TO_DRAFT_KEY);
+        if (raw) localSaved = JSON.parse(raw);
+      } catch (e) { /* ignore */ }
+      return toSyncFromCloud(localSaved, { announceNoChange: true });
+    });
 
     document.body.addEventListener('input', toSaveDraft);
     document.body.addEventListener('change', toSaveDraft);

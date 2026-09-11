@@ -5,12 +5,10 @@ const HOUR_LABELS = {
   holiday: 'Holiday', other: 'Other'
 };
 
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
 let sigPad;
 
 function formatDate(d) {
-  return `${DAY_NAMES[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+  return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 function isoDate(d) {
   return d.toISOString().slice(0, 10);
@@ -52,31 +50,28 @@ function collectDraftState() {
 
 function saveDraft() {
   clearTimeout(draftSaveTimer);
-  draftSaveTimer = setTimeout(() => {
+  draftSaveTimer = setTimeout(async () => {
+    const state = collectDraftState();
+    state.updatedAt = Date.now();
     try {
-      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(collectDraftState()));
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(state));
     } catch (err) {
       // Storage can fail (private browsing, quota, disabled) — not worth
       // interrupting the person filling out the form over.
       console.error('Could not save draft:', err);
     }
+    if (getSyncCode()) {
+      const result = await pushDraftToCloud('timesheet', state);
+      if (!result.ok && result.message) console.error('Cloud sync (save) failed:', result.message);
+    }
   }, 300);
 }
 
-function restoreDraft() {
-  let saved;
-  try {
-    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (!raw) return;
-    saved = JSON.parse(raw);
-  } catch (err) {
-    console.error('Could not read saved draft:', err);
-    return;
-  }
-
-  if (saved.employeeName) document.getElementById('employeeName').value = saved.employeeName;
+function applyDraftToForm(saved) {
+  let restoredSomething = false;
+  if (saved.employeeName) { document.getElementById('employeeName').value = saved.employeeName; restoredSomething = true; }
   if (saved.scheduleCode) document.getElementById('scheduleCode').value = saved.scheduleCode;
-  if (saved.payPeriodStart) document.getElementById('payPeriodStart').value = saved.payPeriodStart;
+  if (saved.payPeriodStart) { document.getElementById('payPeriodStart').value = saved.payPeriodStart; restoredSomething = true; }
   if (saved.notes) document.getElementById('notes').value = saved.notes;
   if (saved.recipientEmail) document.getElementById('recipientEmail').value = saved.recipientEmail;
   if (saved.sigDate) document.getElementById('sigDate').value = saved.sigDate;
@@ -88,18 +83,59 @@ function restoreDraft() {
     rows.forEach((rowData, i) => {
       if (!trs[i]) return;
       ['in', 'out', ...HOUR_KEYS].forEach(key => {
-        if (rowData[key]) trs[i].querySelector(`input[data-field="${key}"]`).value = rowData[key];
+        const input = trs[i].querySelector(`input[data-field="${key}"]`);
+        input.value = rowData[key] || '';
       });
     });
   };
   restoreWeek('table-week-1', saved.week1);
   restoreWeek('table-week-2', saved.week2);
+  if (saved.week1 || saved.week2) restoredSomething = true;
 
-  if (saved.signature && sigPad) sigPad.loadFromDataURL(saved.signature);
+  if (saved.signature && sigPad) { sigPad.loadFromDataURL(saved.signature); restoredSomething = true; }
 
-  if (saved.employeeName || saved.payPeriodStart || saved.week1 || saved.week2) {
-    setStatus('Restored your unsubmitted entries from this browser.', 'pending');
+  return restoredSomething;
+}
+
+function restoreDraft() {
+  let localSaved = null;
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (raw) localSaved = JSON.parse(raw);
+  } catch (err) {
+    console.error('Could not read saved draft:', err);
   }
+
+  if (localSaved) {
+    const restoredSomething = applyDraftToForm(localSaved);
+    if (restoredSomething) setStatus('Restored your unsubmitted entries from this browser.', 'pending');
+  }
+
+  if (getSyncCode()) syncFromCloud(localSaved, { announceNoChange: false });
+}
+
+async function syncFromCloud(localSaved, opts = {}) {
+  const result = await pullDraftFromCloud('timesheet');
+  if (!result.ok) {
+    if (opts.announceNoChange !== false) setStatus('Could not check for synced entries (' + (result.message || 'network error') + ').', 'error');
+    return 'Sync check failed.';
+  }
+  const localUpdatedAt = (localSaved && localSaved.updatedAt) || 0;
+  if (result.found && result.updatedAt && result.updatedAt > localUpdatedAt) {
+    applyDraftToForm(result.data);
+    recalcAll();
+    try { localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(Object.assign({}, result.data, { updatedAt: result.updatedAt }))); } catch (e) { /* ignore */ }
+    setStatus('Loaded newer entries synced from another device.', 'ok');
+    return 'Loaded newer synced entries.';
+  }
+  // Nothing newer in the cloud — push what we have so other devices can see it.
+  const state = collectDraftState();
+  state.updatedAt = Date.now();
+  const pushResult = await pushDraftToCloud('timesheet', state);
+  if (opts.announceNoChange !== false) {
+    setStatus(pushResult.ok ? 'This device is up to date and synced.' : 'Synced locally, but could not reach the sync server.', pushResult.ok ? 'ok' : 'error');
+  }
+  return pushResult.ok ? 'Up to date.' : 'Could not reach sync server.';
 }
 
 function clearDraft() {
@@ -496,8 +532,18 @@ function init() {
     document.getElementById('startFreshBtn').addEventListener('click', () => {
       if (confirm('Clear all entries on this form? This cannot be undone.')) {
         clearDraft();
+        setSyncCode('');
         window.location.reload();
       }
+    });
+
+    initSyncControls('syncCodeInput', 'syncNowBtn', 'syncStatusMsg', (code) => {
+      let localSaved = null;
+      try {
+        const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (raw) localSaved = JSON.parse(raw);
+      } catch (e) { /* ignore */ }
+      return syncFromCloud(localSaved, { announceNoChange: true });
     });
 
     // Autosave everything: typed fields, table entries, checkbox, and the
