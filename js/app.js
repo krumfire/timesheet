@@ -53,6 +53,7 @@ function saveDraft() {
   draftSaveTimer = setTimeout(async () => {
     const state = collectDraftState();
     state.updatedAt = Date.now();
+    state.syncCodeAtSave = getSyncCode();
     try {
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(state));
     } catch (err) {
@@ -115,24 +116,61 @@ function restoreDraft() {
 }
 
 async function syncFromCloud(localSaved, opts = {}) {
+  const currentCode = getSyncCode();
+  // Entering a code that differs from whatever this device's local draft
+  // was last saved under means "link to that code's data" — the person's
+  // intent is unambiguous, so always pull rather than letting an unrelated
+  // local timestamp decide whether to overwrite what's there. Without this
+  // distinction, typing in someone else's code could silently push this
+  // device's own stale/blank draft over their entries if the local
+  // timestamp happened to look newer.
+  const isLinkingDifferentCode = !localSaved || localSaved.syncCodeAtSave !== currentCode;
+
   const result = await pullDraftFromCloud('timesheet');
   if (!result.ok) {
     const detail = result.message || 'network error — check your connection';
     if (opts.announceNoChange !== false) setStatus('Could not check for synced entries (' + detail + ').', 'error');
     return 'Sync failed: ' + detail;
   }
+
+  if (isLinkingDifferentCode) {
+    if (result.found) {
+      applyDraftToForm(result.data);
+      recalcAll();
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(Object.assign({}, result.data, { updatedAt: result.updatedAt, syncCodeAtSave: currentCode })));
+      } catch (e) { /* ignore */ }
+      setStatus('Loaded entries synced under this code.', 'ok');
+      return 'Loaded synced entries.';
+    }
+    // Nothing exists under this code yet — don't push this device's
+    // unrelated local draft into it; that would seed someone else's fresh
+    // code with the wrong data. New entries typed from here on will sync
+    // normally via autosave.
+    setStatus('No synced entries found yet for this code.', 'pending');
+    return 'No synced entries found for this code yet.';
+  }
+
+  // Routine re-sync of the SAME already-linked code: whichever side has
+  // the more recent change wins.
   const localUpdatedAt = (localSaved && localSaved.updatedAt) || 0;
   if (result.found && result.updatedAt && result.updatedAt > localUpdatedAt) {
     applyDraftToForm(result.data);
     recalcAll();
-    try { localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(Object.assign({}, result.data, { updatedAt: result.updatedAt }))); } catch (e) { /* ignore */ }
+    try {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(Object.assign({}, result.data, { updatedAt: result.updatedAt, syncCodeAtSave: currentCode })));
+    } catch (e) { /* ignore */ }
     setStatus('Loaded newer entries synced from another device.', 'ok');
     return 'Loaded newer synced entries.';
   }
   // Nothing newer in the cloud — push what we have so other devices can see it.
   const state = collectDraftState();
   state.updatedAt = Date.now();
+  state.syncCodeAtSave = currentCode;
   const pushResult = await pushDraftToCloud('timesheet', state);
+  if (pushResult.ok) {
+    try { localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+  }
   if (opts.announceNoChange !== false) {
     setStatus(pushResult.ok ? 'This device is up to date and synced.' : 'Synced locally, but could not reach the sync server.', pushResult.ok ? 'ok' : 'error');
   }
