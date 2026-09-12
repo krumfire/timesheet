@@ -167,6 +167,21 @@ async function toSyncFromCloud(localSaved, opts = {}) {
   return pushResult.ok ? 'Up to date.' : 'Could not reach sync server.';
 }
 
+function toResetForm() {
+  TO_TEXT_FIELD_IDS.forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('toPurposeAdvance').checked = true;
+  document.getElementById('toPurposeAccrued').checked = false;
+  document.getElementById('toDepartment').value = 'Fire';
+  const today = toIsoDate(new Date());
+  document.getElementById('toDateSubmitted').value = today;
+  document.getElementById('toSigDate').value = today;
+  document.getElementById('toRecipientEmail').value = 'rcornelius@krumfire.com';
+  if (toSigPad) toSigPad.clear();
+  document.getElementById('toTotalRequested').value = '';
+  document.getElementById('toTotalApplied').value = '';
+  toUpdateSectionVisibility();
+}
+
 function toClearDraft() {
   clearTimeout(toDraftSaveTimer);
   try {
@@ -441,9 +456,11 @@ async function toOnSubmit() {
     if (result.ok && !result.unconfirmed) {
       toSetStatus('Leave request emailed successfully. A copy has also been downloaded for your records.', 'ok');
       toClearDraft();
+      toResetForm();
     } else if (result.ok && result.unconfirmed) {
       toSetStatus('Request submitted, but this browser could not confirm delivery — check that it arrived, or ask the recipient. A copy has been downloaded for your records.', 'pending');
       toClearDraft();
+      toResetForm();
     } else {
       toSetStatus('The request was NOT emailed: ' + result.message + ' A copy has still been downloaded so you don\'t lose your entries. Your entries are still saved in this browser — fix the issue above and try submitting again.', 'error');
     }
