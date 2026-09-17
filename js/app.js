@@ -4,6 +4,11 @@ const HOUR_LABELS = {
   ot: 'Overtime Hours', dplo: 'DPLO', sick: 'Sick', vacation: 'Vacation',
   holiday: 'Holiday', other: 'Other'
 };
+// Shorter labels for the collapsed mobile accordion header, where space is tight.
+const MOBILE_SHORT_LABELS = {
+  dplr: 'DPLR', flsa: 'FLSA', dpflsa: 'DPFLSA', ot: 'OT', dplo: 'DPLO',
+  sick: 'Sick', vacation: 'Vacation', holiday: 'Holiday', other: 'Other'
+};
 
 let sigPad;
 
@@ -341,7 +346,7 @@ function buildMobileAccordionRow(tr) {
   return rowEl;
 }
 
-function buildMobileAccordion(tableId, mountId) {
+function buildMobileAccordion(tableId, mountId, opts = {}) {
   const table = document.getElementById(tableId);
   const mount = document.getElementById(mountId);
   if (!table || !mount) return;
@@ -355,6 +360,13 @@ function buildMobileAccordion(tableId, mountId) {
   Array.from(table.querySelectorAll('tbody tr')).forEach(tr => {
     mount.appendChild(buildMobileAccordionRow(tr));
   });
+
+  if (opts.includeGrandTotal) {
+    const grandTotalEl = document.createElement('div');
+    grandTotalEl.className = 'mobile-week-total mobile-grand-total';
+    mount.appendChild(grandTotalEl);
+    mount._grandTotalEl = grandTotalEl;
+  }
 }
 
 function refreshMobileAccordion() {
@@ -365,7 +377,12 @@ function refreshMobileAccordion() {
       const m = tr._mobile;
       if (!m) return;
       m.headerDate.textContent = tr.querySelector('[data-role="day-label"]').textContent;
-      m.headerTotal.textContent = tr.querySelector('[data-role="row-total"]').textContent + ' hrs';
+      const rowTotalText = tr.querySelector('[data-role="row-total"]').textContent;
+      const activeTypes = HOUR_KEYS.filter(k => k !== 'regular' && (parseFloat(tr.querySelector(`input[data-field="${k}"]`).value) || 0) !== 0)
+        .map(k => MOBILE_SHORT_LABELS[k]);
+      m.headerTotal.textContent = activeTypes.length
+        ? `${activeTypes.join(', ')} \u00b7 ${rowTotalText} hrs`
+        : `${rowTotalText} hrs`;
 
       m.mirrors.forEach(({ input, fieldKey }) => {
         if (document.activeElement === input) return;
@@ -393,6 +410,10 @@ function refreshMobileAccordion() {
     if (mount && mount._weekTotalEl) {
       const total = table.querySelector('tfoot [data-total="total"]').textContent;
       mount._weekTotalEl.textContent = `Week ${weekNum} total: ${total} hrs`;
+    }
+    if (mount && mount._grandTotalEl) {
+      const grandTotal = document.querySelector('[data-grand="total"]').textContent;
+      mount._grandTotalEl.textContent = `Pay period total: ${grandTotal} hrs`;
     }
   });
 }
@@ -762,7 +783,7 @@ function init() {
     buildWeekRows(week1Tbody, 0);
     buildWeekRows(week2Tbody, 7);
     buildMobileAccordion('table-week-1', 'mobileAccordion1');
-    buildMobileAccordion('table-week-2', 'mobileAccordion2');
+    buildMobileAccordion('table-week-2', 'mobileAccordion2', { includeGrandTotal: true });
 
     const today = new Date();
     document.getElementById('sigDate').value = isoDate(today);
