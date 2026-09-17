@@ -418,6 +418,18 @@ function refreshMobileAccordion() {
   });
 }
 
+function setupWeekToggle(buttonId, contentIds) {
+  const btn = document.getElementById(buttonId);
+  if (!btn) return;
+  const contents = contentIds.map(id => document.getElementById(id)).filter(Boolean);
+  btn.addEventListener('click', () => {
+    const expanded = btn.getAttribute('aria-expanded') !== 'false';
+    const next = !expanded;
+    btn.setAttribute('aria-expanded', String(next));
+    contents.forEach(el => { el.style.display = next ? '' : 'none'; });
+  });
+}
+
 function buildWeekRows(tbody, startIndex) {
   tbody.innerHTML = '';
   for (let i = 0; i < 7; i++) {
@@ -784,6 +796,8 @@ function init() {
     buildWeekRows(week2Tbody, 7);
     buildMobileAccordion('table-week-1', 'mobileAccordion1');
     buildMobileAccordion('table-week-2', 'mobileAccordion2', { includeGrandTotal: true });
+    setupWeekToggle('week1Toggle', ['tableScroll1', 'mobileAccordion1']);
+    setupWeekToggle('week2Toggle', ['tableScroll2', 'mobileAccordion2']);
 
     const today = new Date();
     document.getElementById('sigDate').value = isoDate(today);
