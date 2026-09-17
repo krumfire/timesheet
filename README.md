@@ -177,6 +177,16 @@ clear their browser data or you change the passcode.
    spreadsheet's `SUM` formulas (which also still live inside the file
    itself — opening the submitted `.xlsx` in Excel or Sheets recalculates
    them the normal way).
+
+   **On a phone** (screens ≤720px wide), the 14-column table is replaced
+   with a tap-to-expand list — one row per day showing the date and that
+   day's total, with in/out and regular hours inside once expanded, and a
+   "+ Add leave type" button that only shows Vacation/Sick/DPLR/etc. when
+   you actually need one, instead of all 10 columns at once. It reads from
+   and writes to the exact same fields as the desktop table (not a
+   separate copy), so switching between a phone and a PC mid-entry, or
+   using [cross-device sync](#enable-cross-device-sync-optional) between
+   them, works exactly the same either way.
 3. Add notes if needed.
 4. Sign in the employee signature box, check the certification box, confirm
    the date.
@@ -337,3 +347,40 @@ Most common causes, in order of likelihood:
 5. **Wrong Apps Script URL.** Confirm `js/config.js` has the `/exec` URL
    (not `/dev`) from your most recent deployment — every new deployment
    version can get a new URL depending on how you deployed it.
+
+## Troubleshooting: "Sync failed" / "Sync check failed"
+
+The sync status text now shows the actual reason after a failed sync
+attempt — read that first. The most likely causes:
+
+1. **`DRAFT_SHEET_ID` isn't set yet, or `Code.gs` wasn't redeployed after
+   setting it.** This is by far the most common cause — cross-device sync
+   needs the one-time [setup above](#enable-cross-device-sync-optional) in
+   addition to the basic email setup; having email working does **not**
+   mean sync is configured. The status will say "Draft sync is not
+   configured on the server" if this is the issue.
+2. **`Code.gs` on script.google.com is out of date** — same issue and same
+   fix as the email troubleshooting above: editing the file in this repo
+   doesn't do anything until you paste it into script.google.com and
+   deploy a new version.
+3. **Check the Apps Script execution log** (script.google.com → your
+   project → Executions) for the actual server-side error, same as with
+   email delivery issues.
+4. **Wrong Google Sheet ID**, or the Apps Script account doesn't have
+   access to that sheet — confirm `DRAFT_SHEET_ID` is the ID from the
+   sheet's URL (the part between `/d/` and `/edit`), and that it was
+   created under the same Google account the script runs as.
+5. **"You do not have permission to call SpreadsheetApp.openById"** — this
+   means Google hasn't authorized the script for Sheets access yet. Adding
+   a new service (Sheets) to a script that was already authorized for
+   something else (Mail) requires a separate, explicit re-authorization —
+   redeploying alone doesn't grant it. Fix:
+   1. Open the project at [script.google.com](https://script.google.com).
+   2. Next to the **Run** (▷) button, use the function dropdown to select
+      **`getDraftSheet`**.
+   3. Click **Run**.
+   4. A dialog appears — click **Review permissions**, choose your account,
+      click **Advanced** if you see an unverified-app warning, then
+      **Go to [project name] (unsafe)**, then **Allow**.
+   This applies immediately to the existing deployment — no new deployment
+   version needed.
