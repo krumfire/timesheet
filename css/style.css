@@ -399,6 +399,16 @@ input[type=email]{
   margin-bottom:10px;
   text-align:right;
 }
+.mobile-grand-total{
+  margin-top:10px;
+  margin-bottom:0;
+  padding:12px 14px;
+  background:var(--brick);
+  color:#fff;
+  border-radius:var(--radius);
+  text-align:center;
+  font-size:14px;
+}
 .mobile-day-row{
   border:1px solid var(--line);
   border-radius:var(--radius);
