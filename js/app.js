@@ -186,6 +186,217 @@ function clearDraft() {
   }
 }
 
+// ---------- Mobile accordion (mirrors the real table inputs; never a
+// separate data model) ----------
+function mirrorInput(mobileInput, tr, fieldKey) {
+  const tableInput = tr.querySelector(`input[data-field="${fieldKey}"]`);
+  mobileInput.value = tableInput.value;
+  mobileInput.addEventListener('input', () => {
+    tableInput.value = mobileInput.value;
+    tableInput.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  tr._mobile.mirrors.push({ input: mobileInput, fieldKey });
+}
+
+function buildMobileAccordionRow(tr) {
+  tr._mobile = { mirrors: [], extraEls: {} };
+
+  const rowEl = document.createElement('div');
+  rowEl.className = 'mobile-day-row';
+
+  const header = document.createElement('button');
+  header.type = 'button';
+  header.className = 'mobile-day-header';
+  const headerDate = document.createElement('span');
+  const headerTotal = document.createElement('span');
+  headerTotal.className = 'mobile-day-header-total';
+  header.appendChild(headerDate);
+  header.appendChild(headerTotal);
+  header.addEventListener('click', () => rowEl.classList.toggle('mobile-day-row-expanded'));
+  rowEl.appendChild(header);
+
+  const body = document.createElement('div');
+  body.className = 'mobile-day-body';
+
+  const ioRow = document.createElement('div');
+  ioRow.className = 'mobile-io-row';
+  [['in', 'In'], ['out', 'Out']].forEach(([fieldKey, labelText]) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'mobile-field';
+    const label = document.createElement('label');
+    label.textContent = labelText;
+    const input = document.createElement('input');
+    input.type = 'time';
+    wrap.appendChild(label);
+    wrap.appendChild(input);
+    ioRow.appendChild(wrap);
+    mirrorInput(input, tr, fieldKey);
+  });
+  body.appendChild(ioRow);
+
+  const regWrap = document.createElement('div');
+  regWrap.className = 'mobile-field mobile-field-primary';
+  const regLabel = document.createElement('label');
+  regLabel.textContent = 'Regular hours';
+  const regInput = document.createElement('input');
+  regInput.type = 'number';
+  regInput.min = '0';
+  regInput.step = '0.25';
+  regWrap.appendChild(regLabel);
+  regWrap.appendChild(regInput);
+  body.appendChild(regWrap);
+  mirrorInput(regInput, tr, 'regular');
+
+  const extrasContainer = document.createElement('div');
+  extrasContainer.className = 'mobile-extras';
+  body.appendChild(extrasContainer);
+
+  HOUR_KEYS.filter(k => k !== 'regular').forEach(key => {
+    const tableInput = tr.querySelector(`input[data-field="${key}"]`);
+    const hasValue = (parseFloat(tableInput.value) || 0) !== 0;
+
+    const extraRow = document.createElement('div');
+    extraRow.className = 'mobile-extra-row';
+    extraRow.style.display = hasValue ? 'flex' : 'none';
+
+    const label = document.createElement('span');
+    label.className = 'mobile-extra-label';
+    label.textContent = HOUR_LABELS[key];
+
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0';
+    input.step = '0.25';
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'mobile-extra-remove';
+    removeBtn.setAttribute('aria-label', 'Remove ' + HOUR_LABELS[key]);
+    removeBtn.textContent = '\u00d7';
+    removeBtn.addEventListener('click', () => {
+      tableInput.value = '';
+      tableInput.dispatchEvent(new Event('input', { bubbles: true }));
+      extraRow.style.display = 'none';
+    });
+
+    extraRow.appendChild(label);
+    extraRow.appendChild(input);
+    extraRow.appendChild(removeBtn);
+    extrasContainer.appendChild(extraRow);
+    mirrorInput(input, tr, key);
+    tr._mobile.extraEls[key] = { row: extraRow };
+  });
+
+  const addWrap = document.createElement('div');
+  addWrap.className = 'mobile-add-wrap';
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button';
+  addBtn.className = 'mobile-add-btn';
+  addBtn.textContent = '+ Add leave type';
+  const addSelect = document.createElement('select');
+  addSelect.className = 'mobile-add-select';
+  addSelect.style.display = 'none';
+  addWrap.appendChild(addBtn);
+  addWrap.appendChild(addSelect);
+  body.appendChild(addWrap);
+
+  addBtn.addEventListener('click', () => {
+    addSelect.innerHTML = '<option value="">Choose type\u2026</option>';
+    HOUR_KEYS.filter(k => k !== 'regular').forEach(key => {
+      if (tr._mobile.extraEls[key].row.style.display === 'none') {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = HOUR_LABELS[key];
+        addSelect.appendChild(opt);
+      }
+    });
+    addBtn.style.display = 'none';
+    addSelect.style.display = 'block';
+    addSelect.focus();
+  });
+  addSelect.addEventListener('change', () => {
+    const key = addSelect.value;
+    if (key) {
+      const entry = tr._mobile.extraEls[key];
+      entry.row.style.display = 'flex';
+      entry.row.querySelector('input').focus();
+    }
+    addSelect.style.display = 'none';
+    addBtn.style.display = 'block';
+  });
+  addSelect.addEventListener('blur', () => {
+    addSelect.style.display = 'none';
+    addBtn.style.display = 'block';
+  });
+
+  rowEl.appendChild(body);
+
+  const hasAnyValue = HOUR_KEYS.some(key => (parseFloat(tr.querySelector(`input[data-field="${key}"]`).value) || 0) !== 0);
+  if (hasAnyValue) rowEl.classList.add('mobile-day-row-expanded');
+  tr._mobile.autoExpandApplied = hasAnyValue;
+  tr._mobile.rowEl = rowEl;
+
+  tr._mobile.headerDate = headerDate;
+  tr._mobile.headerTotal = headerTotal;
+  return rowEl;
+}
+
+function buildMobileAccordion(tableId, mountId) {
+  const table = document.getElementById(tableId);
+  const mount = document.getElementById(mountId);
+  if (!table || !mount) return;
+  mount.innerHTML = '';
+
+  const weekTotalEl = document.createElement('div');
+  weekTotalEl.className = 'mobile-week-total';
+  mount.appendChild(weekTotalEl);
+  mount._weekTotalEl = weekTotalEl;
+
+  Array.from(table.querySelectorAll('tbody tr')).forEach(tr => {
+    mount.appendChild(buildMobileAccordionRow(tr));
+  });
+}
+
+function refreshMobileAccordion() {
+  [1, 2].forEach(weekNum => {
+    const table = document.getElementById(`table-week-${weekNum}`);
+    if (!table) return;
+    Array.from(table.querySelectorAll('tbody tr')).forEach(tr => {
+      const m = tr._mobile;
+      if (!m) return;
+      m.headerDate.textContent = tr.querySelector('[data-role="day-label"]').textContent;
+      m.headerTotal.textContent = tr.querySelector('[data-role="row-total"]').textContent + ' hrs';
+
+      m.mirrors.forEach(({ input, fieldKey }) => {
+        if (document.activeElement === input) return;
+        const tableInput = tr.querySelector(`input[data-field="${fieldKey}"]`);
+        if (input.value !== tableInput.value) input.value = tableInput.value;
+      });
+
+      HOUR_KEYS.filter(k => k !== 'regular').forEach(key => {
+        const tableInput = tr.querySelector(`input[data-field="${key}"]`);
+        const val = parseFloat(tableInput.value) || 0;
+        const extraRow = m.extraEls[key].row;
+        if (val !== 0 && extraRow.style.display === 'none') extraRow.style.display = 'flex';
+      });
+
+      if (!m.autoExpandApplied) {
+        const hasAnyValue = HOUR_KEYS.some(key => (parseFloat(tr.querySelector(`input[data-field="${key}"]`).value) || 0) !== 0);
+        if (hasAnyValue) {
+          m.rowEl.classList.add('mobile-day-row-expanded');
+          m.autoExpandApplied = true;
+        }
+      }
+    });
+
+    const mount = document.getElementById(`mobileAccordion${weekNum}`);
+    if (mount && mount._weekTotalEl) {
+      const total = table.querySelector('tfoot [data-total="total"]').textContent;
+      mount._weekTotalEl.textContent = `Week ${weekNum} total: ${total} hrs`;
+    }
+  });
+}
+
 function buildWeekRows(tbody, startIndex) {
   tbody.innerHTML = '';
   for (let i = 0; i < 7; i++) {
@@ -293,6 +504,7 @@ function recalcAll() {
   document.querySelector('[data-grand="total"]').textContent = grand.total.toFixed(2).replace(/\.00$/, '');
 
   updatePayPeriodDisplay();
+  refreshMobileAccordion();
 }
 
 function updatePayPeriodDisplay() {
@@ -549,6 +761,8 @@ function init() {
     const week2Tbody = document.querySelector('#table-week-2 tbody');
     buildWeekRows(week1Tbody, 0);
     buildWeekRows(week2Tbody, 7);
+    buildMobileAccordion('table-week-1', 'mobileAccordion1');
+    buildMobileAccordion('table-week-2', 'mobileAccordion2');
 
     const today = new Date();
     document.getElementById('sigDate').value = isoDate(today);
