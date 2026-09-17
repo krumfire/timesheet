@@ -178,16 +178,27 @@ h1 .sub{
 .week{padding:26px 32px 6px; position:relative;}
 #week2{padding-bottom:30px;}
 .week-tab{
-  display:inline-block;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
   font-family:var(--font-mono);
   font-size:12px;
   letter-spacing:.14em;
   font-weight:600;
   color:#fff;
   background:var(--ink);
-  padding:4px 10px;
+  border:none;
+  padding:4px 8px 4px 10px;
   margin-bottom:10px;
+  cursor:pointer;
+  border-radius:var(--radius);
 }
+.week-tab:hover{background:var(--brick-dark);}
+.week-tab-chevron{
+  font-size:10px;
+  transition:transform .15s ease;
+}
+.week-tab[aria-expanded="false"] .week-tab-chevron{transform:rotate(-90deg);}
 .table-scroll{overflow-x:auto; border:1px solid var(--line);}
 table.timesheet-table{
   border-collapse:collapse;
