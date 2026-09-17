@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>KFD Timesheet</title>
+<title>14-Day Time Record</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
@@ -59,8 +59,11 @@
   </section>
 
   <section class="week" id="week1">
-    <div class="week-tab">WEEK 01</div>
-    <div class="table-scroll">
+    <button type="button" class="week-tab" id="week1Toggle" aria-expanded="true" aria-controls="tableScroll1 mobileAccordion1">
+      <span>WEEK 01</span>
+      <span class="week-tab-chevron" aria-hidden="true">&#9662;</span>
+    </button>
+    <div class="table-scroll" id="tableScroll1">
       <table class="timesheet-table" id="table-week-1">
         <colgroup>
           <col style="width:6%">
@@ -119,8 +122,11 @@
   </section>
 
   <section class="week" id="week2">
-    <div class="week-tab">WEEK 02</div>
-    <div class="table-scroll">
+    <button type="button" class="week-tab" id="week2Toggle" aria-expanded="true" aria-controls="tableScroll2 mobileAccordion2">
+      <span>WEEK 02</span>
+      <span class="week-tab-chevron" aria-hidden="true">&#9662;</span>
+    </button>
+    <div class="table-scroll" id="tableScroll2">
       <table class="timesheet-table" id="table-week-2">
         <colgroup>
           <col style="width:6%">
