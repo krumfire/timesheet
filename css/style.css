@@ -10,9 +10,9 @@
   --gold:#b8912a;
   --ok:#2f6b4f;
   --radius:2px;
-  --font-display:'Zilla Slab', Georgia, serif;
+  --font-display:'Inter', system-ui, sans-serif;
   --font-body:'Inter', system-ui, sans-serif;
-  --font-mono:'IBM Plex Mono', ui-monospace, monospace;
+  --font-mono:'Inter', system-ui, sans-serif;
 }
 
 *{box-sizing:border-box;}
@@ -181,7 +181,7 @@ h1 .sub{
   display:inline-flex;
   align-items:center;
   gap:6px;
-  font-family:var(--font-mono);
+  font-family:var(--font-body);
   font-size:12px;
   letter-spacing:.14em;
   font-weight:600;
@@ -403,7 +403,7 @@ input[type=email]{
 /* ---------- Mobile day-entry accordion (mirrors the table's own inputs) ---------- */
 .mobile-accordion{display:none;}
 .mobile-week-total{
-  font-family:var(--font-mono);
+  font-family:var(--font-body);
   font-weight:600;
   font-size:13px;
   color:var(--ink-soft);
@@ -442,7 +442,7 @@ input[type=email]{
   cursor:pointer;
 }
 .mobile-day-header-total{
-  font-family:var(--font-mono);
+  font-family:var(--font-body);
   font-weight:600;
   font-size:13px;
   color:var(--ink-soft);
@@ -473,7 +473,7 @@ input[type=email]{
   font-size:16px;
   border:1px solid var(--line-strong);
   border-radius:var(--radius);
-  font-family:var(--font-mono);
+  font-family:var(--font-body);
 }
 .mobile-field-primary{margin-bottom:12px;}
 .mobile-field-primary input{font-size:18px; font-weight:600;}
@@ -498,7 +498,7 @@ input[type=email]{
   font-size:14px;
   border:1px solid var(--line-strong);
   border-radius:var(--radius);
-  font-family:var(--font-mono);
+  font-family:var(--font-body);
 }
 .mobile-extra-remove{
   width:28px;
