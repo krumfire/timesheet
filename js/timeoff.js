@@ -335,7 +335,12 @@ async function toSubmitRequest(fields) {
 
     if (json && json.status === 'success') return { ok: true };
     if (json && json.status === 'error') return { ok: false, message: json.message || 'The email server reported an error.' };
-    return { ok: false, message: 'Unexpected response from the email server. Check the Apps Script deployment.' };
+    // See app.js submitTimesheet() for why this is treated as unconfirmed
+    // success rather than a hard failure — Google's Web App response
+    // delivery doesn't always come through as clean JSON even when the
+    // script ran fine server-side.
+    console.error('Apps Script returned a non-JSON response (email may have still sent):', text);
+    return { ok: true, unconfirmed: true };
   } catch (err) {
     console.error('fetch submission failed, falling back to iframe:', err);
     await toSubmitViaHiddenIframe(fields);

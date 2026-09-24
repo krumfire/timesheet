@@ -735,9 +735,14 @@ async function submitTimesheet(fields) {
     if (json && json.status === 'error') {
       return { ok: false, message: json.message || 'The email server reported an error.' };
     }
-    // Got a response but couldn't parse it as the expected JSON — likely the
-    // Apps Script URL is wrong, not deployed, or returned an HTML error page.
-    return { ok: false, message: 'Unexpected response from the email server. Check the Apps Script deployment.' };
+    // Got an HTTP response, but couldn't parse it as our expected JSON shape.
+    // This can happen with Google Apps Script even when the script ran fine
+    // server-side (e.g. the email actually sent) — Google's response
+    // delivery for Web Apps doesn't always come through as clean JSON to a
+    // cross-origin fetch. Since we can't tell success from failure here,
+    // report it as unconfirmed rather than claiming it definitely failed.
+    console.error('Apps Script returned a non-JSON response (email may have still sent):', text);
+    return { ok: true, unconfirmed: true };
   } catch (err) {
     // fetch itself failed (network error, or the browser blocked reading the
     // cross-origin response). Fall back to a fire-and-forget submission so the
