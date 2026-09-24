@@ -175,7 +175,7 @@ function toResetForm() {
   const today = toIsoDate(new Date());
   document.getElementById('toDateSubmitted').value = today;
   document.getElementById('toSigDate').value = today;
-  document.getElementById('toRecipientEmail').value = 'rcornelius@krumfire.com';
+  document.getElementById('toRecipientEmail').value = 'kfd_timesheets@ci.krum.tx.us';
   if (toSigPad) toSigPad.clear();
   document.getElementById('toTotalRequested').value = '';
   document.getElementById('toTotalApplied').value = '';
