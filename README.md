@@ -238,7 +238,7 @@ Click **Request Time Off →** in the timesheet's header, or go directly to
    field for that section fills in automatically as you type. Add comments
    if needed.
 4. Sign in the signature box and confirm the date.
-5. Enter the recipient's email (defaults to `rcornelius@krumfire.com`, same
+5. Enter the recipient's email (defaults to `kfd_timesheets@ci.krum.tx.us`, same
    as the timesheet — change it if a request needs to go elsewhere).
 6. Click **Sign & submit request**. This fills in and emails the *original*
    Leave Request PDF, completely separately from the timesheet — it's a
